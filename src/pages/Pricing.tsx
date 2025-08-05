@@ -167,10 +167,10 @@ export function Pricing() {
           {Object.entries(plans).map(([key, plan]) => (
             <Card 
               key={key} 
-              className={`relative p-8 trading-card ${
+              className={`relative p-8 trading-card transition-all duration-300 ease-in-out h-full flex flex-col border-border/20 hover:shadow-xl hover:shadow-primary/20 hover:border-primary/70 hover:-translate-y-2 hover:scale-[1.02] ${
                 plan.popular 
-                  ? 'border-primary shadow-2xl shadow-primary/20 scale-105' 
-                  : 'border-border/20'
+                  ? 'border-primary shadow-lg shadow-primary/20 border-2 hover:scale-[1.04]' 
+                  : ''
               }`}
             >
               {plan.popular && (
@@ -182,7 +182,7 @@ export function Pricing() {
                 </div>
               )}
 
-              <div className="space-y-6">
+              <div className="space-y-6 flex-1 flex flex-col">
                 {/* Plan Header */}
                 <div className="text-center space-y-2">
                   <h3 className="text-2xl font-bold text-foreground flex items-center justify-center space-x-2">
