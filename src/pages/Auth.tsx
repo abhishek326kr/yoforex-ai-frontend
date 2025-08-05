@@ -25,6 +25,8 @@ import {
   TrendingUp
 } from "lucide-react";
 import axios from "axios";
+import PhoneInput from 'react-phone-input-2'
+import 'react-phone-input-2/lib/style.css'
 
 interface AuthFormData {
   name?: string;
@@ -88,7 +90,8 @@ export function Auth() {
     } catch (error: any) {
       console.error("Signup error:", error);
       console.error("Error response:", error.response);
-      
+      console.log(error.response)
+
       if (error.response?.status === 422) {
         const errorData = error.response.data;
         toast({
@@ -104,8 +107,8 @@ export function Auth() {
         });
       } else {
         toast({
-          title: "Network Error",
-          description: `Error: ${error.message || "Please check your connection and try again."}`,
+          title: `Error: ${error.response.status}`,
+          description: `${error.response.data.detail}`,
           variant: "destructive",
         });
       }
@@ -154,8 +157,8 @@ export function Auth() {
         });
       } else {
         toast({
-          title: "Network Error",
-          description: "Please check your connection and try again.",
+          title: `Error: ${error.response.status}`,
+          description: `${error.response.data.detail}`,
           variant: "destructive",
         });
       }
@@ -203,8 +206,8 @@ export function Auth() {
         });
       } else {
         toast({
-          title: "Network Error",
-          description: "Please check your connection and try again.",
+          title: `Error: ${error.response.status}`,
+          description: `${error.response.data.detail}`,
           variant: "destructive",
         });
       }
@@ -257,8 +260,8 @@ export function Auth() {
         });
       } else {
         toast({
-          title: "Network Error",
-          description: "Please check your connection and try again.",
+          title: `Error: ${error.response.status}`,
+          description: `${error.response.data.detail}`,
           variant: "destructive",
         });
       }
@@ -311,8 +314,8 @@ export function Auth() {
         });
       } else {
         toast({
-          title: "Network Error",
-          description: "Please check your connection and try again.",
+          title: `Error: ${error.response.status}`,
+          description: `${error.response.data.detail}`,
           variant: "destructive",
         });
       }
@@ -363,7 +366,7 @@ export function Auth() {
             <TabsContent value="signup" className="space-y-4">
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="name" className="text-sm font-medium text-foreground">
+                  <Label htmlFor="name" className="text-sm font-medium text-foreground pb-[10px]">
                     Full Name
                   </Label>
                   <div className="relative">
@@ -380,7 +383,7 @@ export function Auth() {
                 </div>
 
                 <div>
-                  <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                  <Label htmlFor="email" className="text-sm font-medium text-foreground pb-[10px]">
                     Email Address
                   </Label>
                   <div className="relative">
@@ -396,16 +399,22 @@ export function Auth() {
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="phone" className="text-sm font-medium text-foreground">
-                    Phone Number
+                <div className="phone-input">
+                  <Label
+                    htmlFor="phone"
+                    className="text-sm font-medium text-foreground flex items-center gap-1 pb-[10px]"
+                  >
+                    <img src="/whatsapp.png" alt="Whatsapp" className="w-4 h-4 inline-block mr-[5px]" />
+                    <span>Whatsapp Number</span>
+
                   </Label>
+
                   <div className="relative">
                     <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="phone"
                       type="tel"
-                      placeholder="Enter your phone number"
+                      placeholder="E.g. +910234567890"
                       value={formData.phone}
                       onChange={(e) => handleInputChange("phone", e.target.value)}
                       className="pl-10 bg-muted/20 border-border/30 focus:border-primary/50"
@@ -413,8 +422,9 @@ export function Auth() {
                   </div>
                 </div>
 
+
                 <div>
-                  <Label htmlFor="password" className="text-sm font-medium text-foreground">
+                  <Label htmlFor="password" className="text-sm font-medium text-foreground pb-[10px]">
                     Password
                   </Label>
                   <div className="relative">
@@ -462,7 +472,7 @@ export function Auth() {
             <TabsContent value="login" className="space-y-4">
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="login-email" className="text-sm font-medium text-foreground">
+                  <Label htmlFor="login-email" className="text-sm font-medium text-foreground pb-[10px]">
                     Email Address
                   </Label>
                   <div className="relative">
@@ -479,7 +489,7 @@ export function Auth() {
                 </div>
 
                 <div>
-                  <Label htmlFor="login-password" className="text-sm font-medium text-foreground">
+                  <Label htmlFor="login-password" className="text-sm font-medium text-foreground pb-[10px]">
                     Password
                   </Label>
                   <div className="relative">
@@ -530,16 +540,21 @@ export function Auth() {
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="login-phone" className="text-sm font-medium text-foreground">
-                    Phone Number <a href="https://www.flaticon.com/free-icons/whatsapp" title="whatsapp icons"></a>
+                <div className="phone-input">
+                  <Label 
+                    htmlFor="phone"
+                    className="text-sm font-medium text-foreground flex items-center gap-1 pb-[10px]"
+                  >
+                    <img src="/whatsapp.png" alt="Whatsapp" className="w-4 h-4 inline-block mr-[5px]" />
+                    <span>Whatsapp Number</span>
+
                   </Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="login-phone"
                       type="tel"
-                      placeholder="Enter your phone number"
+                      placeholder="E.g. +910123456789"
                       value={formData.phone}
                       onChange={(e) => handleInputChange("phone", e.target.value)}
                       className="pl-10 bg-muted/20 border-border/30 focus:border-primary/50"

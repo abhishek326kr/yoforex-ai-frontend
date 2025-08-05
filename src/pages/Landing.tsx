@@ -12,25 +12,18 @@ import {
   Globe,
   Smartphone,
   Clock,
-  DollarSign,
+  
   Target,
   Activity,
   ArrowRight,
   Play,
   Star,
   Users,
-  Award,
+  
   CheckCircle,
-  ArrowUpRight,
+  
   Sparkles,
-  Cpu,
-  Database,
-  Wifi,
-  Lock,
-  Eye,
-  BarChart,
-  PieChart,
-  LineChart
+  
 } from "lucide-react";
 
 const features = [

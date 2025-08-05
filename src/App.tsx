@@ -11,7 +11,7 @@ import { Settings } from "@/pages/Settings";
 import { Pricing } from "@/pages/Pricing";
 import { Billing } from "@/pages/Billing";
 import { Auth } from "@/pages/Auth";
-import { Landing } from "@/pages/Landing";
+// import { Landing } from "@/pages/Landing";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PublicRoute } from "@/components/PublicRoute";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -21,18 +21,17 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <Router>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <Router>
+        <AuthProvider>
           <Switch>
-            <Route path="/auth">
+            <Route path="/">
               <PublicRoute>
                 <Auth />
               </PublicRoute>
             </Route>
-            <Route path="/" component={Landing} />
             <Route path="/dashboard">
               <ProtectedRoute>
                 <Dashboard />
@@ -72,9 +71,9 @@ const App = () => (
             </Route>
             <Route component={NotFound} />
           </Switch>
-        </Router>
-      </TooltipProvider>
-    </AuthProvider>
+        </AuthProvider>
+      </Router>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 

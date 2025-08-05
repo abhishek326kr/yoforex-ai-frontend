@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { Search, Bell, User, ChevronDown, TrendingUp, TrendingDown, LogOut, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Search, Bell, User, ChevronDown, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,71 +12,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/hooks/useAuth";
+import LivePriceTracker from "@/components/LivePriceTracker";
 
 export function TradingHeader() {
   const [searchQuery, setSearchQuery] = useState("");
   const { logout } = useAuth();
-  const [marketData, setMarketData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchPrices() {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await axios.get("/prices/prices", {
-          headers: { Accept: "application/json" },
-        });
-        setMarketData(response.data);
-      } catch (err: any) {
-        setError("Failed to load prices");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchPrices();
-    // Optionally, poll every 10 seconds:
-    const interval = setInterval(fetchPrices, 10000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
-    <header className="fixed top-0 right-0 left-0 md:left-60 z-30 h-16 bg-card/80 backdrop-blur-md border-b border-border/20">
-      <div className="flex h-full items-center justify-between px-4 md:px-6">
-        {/* Market Ticker */}
-        <div className="hidden lg:flex items-center space-x-6 flex-1">
-          {loading ? (
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Loading prices...</span>
-            </div>
-          ) : error ? (
-            <div className="text-sm text-red-500">{error}</div>
-          ) : (
-            marketData.map((item) => (
-              <div key={item.pair} className="flex items-center space-x-2 text-sm">
-                <span className="font-medium text-foreground">{item.pair}</span>
-                <span className="text-foreground/80">{item.price}</span>
-                <div className={`flex items-center space-x-1 ${
-                  item.change > 0 ? 'text-trading-profit' : item.change < 0 ? 'text-trading-loss' : 'text-muted-foreground'
-                }`}>
-                  {item.change > 0 ? (
-                    <TrendingUp className="h-3 w-3" />
-                  ) : item.change < 0 ? (
-                    <TrendingDown className="h-3 w-3" />
-                  ) : null}
-                  <span className="text-xs">{item.change > 0 ? '+' : ''}{item.change}</span>
-                </div>
-              </div>
-            ))
-          )}
+    <header className="fixed top-0 right-0 left-0 md:left-60 z-30 bg-card/90 backdrop-blur-md border-b border-border/20">
+      <div className="h-[75px] flex items-center px-4 md:px-6 gap-4">
+        {/* Live Price Tracker - Takes remaining space */}
+        <div className="flex-1 min-w-0">
+          <LivePriceTracker />
         </div>
 
-        {/* Search Bar */}
-        <div className="flex-1 max-w-md mx-4">
+        {/* Search Bar - Fixed width that won't grow */}
+        <div className="w-[250px] flex-shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -88,8 +40,8 @@ export function TradingHeader() {
           </div>
         </div>
 
-        {/* Right Section */}
-        <div className="flex items-center space-x-4">
+        {/* Right Section - Don't allow to grow */}
+        <div className="flex items-center space-x-4 flex-shrink-0">
           {/* Credit Display */}
           <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-gradient-glass backdrop-blur-sm rounded-lg border border-border/20">
             <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
@@ -138,5 +90,6 @@ export function TradingHeader() {
         </div>
       </div>
     </header>
+    
   );
 }

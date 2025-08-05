@@ -18,6 +18,10 @@ export default defineConfig({
         target: 'https://backend.axiontrust.com',
         changeOrigin: true,
       },
+      '/prices': {
+        target: 'https://backend.axiontrust.com',
+        changeOrigin: true,
+      },
     },
   },
 });

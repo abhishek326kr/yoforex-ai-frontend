@@ -1,4 +1,5 @@
 import { useState, useEffect, createContext, useContext } from "react";
+// import { useLocation } from "wouter";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -11,6 +12,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  // const navigate = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('authToken');
     setIsAuthenticated(false);
     setUser(null);
+    window.location.href = '/';
   };
 
   return (
