@@ -40,3 +40,5 @@ out/
 # Testing
 coverage/
 .nyc_output
+CLEANUP_SUMMARY.md 
+bun.lock
