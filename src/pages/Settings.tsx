@@ -228,7 +228,7 @@ export function Settings() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {[
-                    { name: "GPT-4 Omni", accuracy: 89, weight: 40, enabled: true },
+                    { name: "GPT 4.1", accuracy: 89, weight: 40, enabled: true },
                     { name: "Claude 3.5 Sonnet", accuracy: 91, weight: 35, enabled: true },
                     { name: "Gemini 1.5 Pro", accuracy: 87, weight: 25, enabled: false }
                   ].map((model) => (

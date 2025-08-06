@@ -47,7 +47,7 @@ const tradeHistory = [
     openTime: "2024-01-15 09:30:00",
     closeTime: "2024-01-15 11:45:00",
     duration: "2h 15m",
-    aiModel: "GPT-4 Omni",
+    aiModel: "GPT-4.1",
     confidence: 89,
     strategy: "Breakout Strategy"
   },
@@ -95,7 +95,7 @@ const tradeHistory = [
     openTime: "2024-01-14 08:00:00",
     closeTime: "2024-01-14 10:30:00",
     duration: "2h 30m",
-    aiModel: "GPT-4 Omni",
+    aiModel: "GPT-4.1",
     confidence: 91,
     strategy: "ICT Concept"
   }

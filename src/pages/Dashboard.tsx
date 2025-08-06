@@ -57,7 +57,7 @@ const recentSignals = [
     entry: "1.0847",
     target: "1.0875",
     time: "2 min ago",
-    aiModel: "GPT-4 Omni"
+    aiModel: "GPT-4.1"
   },
   {
     pair: "GBP/JPY",
@@ -66,7 +66,7 @@ const recentSignals = [
     entry: "189.45",
     target: "188.20",
     time: "8 min ago",
-    aiModel: "Claude 3.5 Sonnet"
+    aiModel: "Claude 4 Sonnet"
   },
   {
     pair: "USD/CAD",
@@ -75,14 +75,14 @@ const recentSignals = [
     entry: "1.3612",
     target: "1.3648",
     time: "15 min ago",
-    aiModel: "Gemini Pro"
+    aiModel: "Gemini 2.5 Pro"
   }
 ];
 
 const aiModels = [
-  { name: "GPT-4 Omni", status: "active", accuracy: "89%", signals: "12" },
-  { name: "Claude 3.5 Sonnet", status: "active", accuracy: "91%", signals: "8" },
-  { name: "Gemini 1.5 Pro", status: "standby", accuracy: "87%", signals: "5" },
+  { name: "GPT-4.1", status: "active", accuracy: "89%", signals: "12" },
+  { name: "Claude 4 Sonnet", status: "active", accuracy: "91%", signals: "8" },
+  { name: "Gemini 2.5 Pro", status: "standby", accuracy: "87%", signals: "5" },
   { name: "Mistral 7B", status: "active", accuracy: "72%", signals: "15" }
 ];
 

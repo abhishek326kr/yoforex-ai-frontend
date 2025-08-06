@@ -34,7 +34,7 @@ const plans = {
     },
     features: [
       "5 AI analyses per day (hard limit with reset timer)",
-      "Access to free AI models (Mistral, Claude Haiku, DeepSeek)",
+      "Access to free AI models (Mistral, Claude Sonnet, DeepSeek)",
       "10+ professional strategies (premium strategies locked)",
       "Basic SL/TP recommendations",
       "AI trade explanations for basic strategies only",

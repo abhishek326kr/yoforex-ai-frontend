@@ -1,44 +1,74 @@
-import { useState } from "react";
-import { TradingLayout } from "@/components/layout/TradingLayout";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useState, useEffect } from 'react';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Brain,
-  Zap,
-  Upload,
-  Search,
-  Star,
-  TrendingUp,
-  TrendingDown,
-  Clock,
-  Target,
-  Shield,
-  DollarSign,
   Activity,
   BarChart3,
-  ChevronRight,
-  Mic
-} from "lucide-react";
+  Brain,
+  Clock,
+  DollarSign,
+  Mic,
+  Search,
+  Shield,
+  Target,
+  Upload,
+  Zap
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { ChevronDown } from 'lucide-react';
+import TradingViewWidget from '@/components/charts/TradingViewWidget';
+import { TradingLayout } from '@/components/layout/TradingLayout';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getTradingPairs } from '@/utils/trading';
 
+// Get all available trading pairs
+const tradingPairs = getTradingPairs();
+const { crypto: cryptoPairs, indianStocks: stockIndices, commodities: commodityPairs } = tradingPairs;
+// Use all forex pairs including commodities
 const forexPairs = [
-  { pair: "EUR/USD", price: "1.0847", change: "+0.0023", positive: true, favorite: true },
-  { pair: "GBP/USD", price: "1.2634", change: "-0.0015", positive: false, favorite: false },
-  { pair: "USD/JPY", price: "149.82", change: "+0.34", positive: true, favorite: true },
-  { pair: "AUD/USD", price: "0.6542", change: "-0.0008", positive: false, favorite: false },
-  { pair: "USD/CHF", price: "0.8745", change: "+0.0012", positive: true, favorite: false },
-  { pair: "EUR/JPY", price: "162.45", change: "+0.23", positive: true, favorite: true }
+  'EUR/USD', 'USD/JPY', 'GBP/USD', 'AUD/USD', 'USD/CAD',
+  'USD/CHF', 'NZD/USD', 'EUR/GBP', 'EUR/JPY', 'GBP/JPY',
+  'XAU/USD', 'XAG/USD', 'XPT/USD', 'XPD/USD', 'OIL/USD',
+  'NATURALGAS/USD', 'COPPER/USD', 'PLATINUM/USD', 'PALLADIUM/USD'
 ];
+
+// Helper function to generate market data
+const generateMarketData = (pairs: string[]) =>
+  pairs.map(pair => ({
+    pair,
+    price: (Math.random() * 100).toFixed(4),
+    change: `${Math.random() > 0.5 ? '+' : '-'}${(Math.random() * 0.5).toFixed(4)}`,
+    positive: Math.random() > 0.5,
+    favorite: Math.random() > 0.7
+  }));
+
+// Define market types
+type MarketType = 'forex' | 'crypto' | 'indices' | 'commodities';
+
+// Generate market data for all pairs
+const marketData = {
+  forex: generateMarketData(forexPairs),
+  crypto: generateMarketData(cryptoPairs),
+  indices: generateMarketData(stockIndices),
+  commodities: generateMarketData(commodityPairs)
+};
+
+// Debug: Log the generated market data
+console.log('=== MARKET DATA DEBUG ===');
+console.log('Forex Pairs:', forexPairs);
+console.log('Crypto Pairs:', cryptoPairs);
+console.log('Stock Indices:', stockIndices);
+console.log('Commodity Pairs:', commodityPairs);
+console.log('Generated Market Data:', {
+  forex: marketData.forex.slice(0, 3) + '...',
+  crypto: marketData.crypto.slice(0, 3) + '...',
+  indices: marketData.indices.slice(0, 3) + '...',
+  commodities: marketData.commodities.slice(0, 3) + '...'
+});
 
 const timeframes = ["1M", "5M", "15M", "30M", "1H", "4H", "8H", "1D", "1W", "1MO"];
 
@@ -98,6 +128,7 @@ const liveSignals = [
 
 export function LiveTrading() {
   const [selectedTimeframe, setSelectedTimeframe] = useState("1H");
+  const [selectedMarket, setSelectedMarket] = useState<MarketType>('forex');
   const [selectedPair, setSelectedPair] = useState("EUR/USD");
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [selectedStrategies, setSelectedStrategies] = useState<string[]>([]);
@@ -124,36 +155,36 @@ export function LiveTrading() {
 
   return (
     <TradingLayout>
-      <div className="space-y-6">
+      <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 flex-shrink-0">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Live Trading</h1>
             <p className="text-muted-foreground mt-1">AI-powered forex analysis and automated trading</p>
           </div>
-          <div className="flex items-center space-x-3 mt-4 sm:mt-0">
+          <div className="flex items-center space-x-3 mt-2 sm:mt-0">
             <Badge variant="secondary" className="bg-gradient-profit text-white">
               <Activity className="h-3 w-3 mr-1" />
               Live Markets
             </Badge>
-            <Button className="bg-gradient-primary hover:bg-primary-hover">
+            <Button className="bg-gradient-primary hover:bg-primary-hover whitespace-nowrap">
               <Zap className="h-4 w-4 mr-2" />
               Emergency Stop
             </Button>
           </div>
         </div>
 
-        <Tabs defaultValue="automated" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <Tabs defaultValue="automated" className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          <TabsList className="grid w-full grid-cols-2 max-w-md mb-4 flex-shrink-0">
             <TabsTrigger value="automated">Automated AI Trading</TabsTrigger>
             <TabsTrigger value="manual">Manual AI Confirmation</TabsTrigger>
           </TabsList>
 
           {/* Automated Trading Tab */}
-          <TabsContent value="automated">
-            <div className="grid grid-cols-12 gap-6 min-h-[800px]">
+          <TabsContent value="automated" className="flex-1 min-h-0 overflow-auto">
+            <div className="grid grid-cols-12 gap-4 h-full p-1">
               {/* Left Panel - Market Selection & AI Config */}
-              <div className="col-span-12 lg:col-span-3 space-y-6">
+              <div className="col-span-12 lg:col-span-3 flex flex-col space-y-4 pr-1 h-[calc(100vh-12rem)]">
                 {/* Market Selection */}
                 <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20">
                   <h3 className="text-lg font-semibold text-foreground mb-4">Market Selection</h3>
