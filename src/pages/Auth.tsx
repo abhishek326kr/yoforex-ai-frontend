@@ -18,14 +18,13 @@ import {
   Shield,
   ArrowRight,
   CheckCircle,
-  AlertCircle,
   Loader2,
   Zap,
   Brain,
   TrendingUp
 } from "lucide-react";
 import axios from "axios";
-import PhoneInput from 'react-phone-input-2'
+
 import 'react-phone-input-2/lib/style.css'
 
 interface AuthFormData {
@@ -40,7 +39,6 @@ export function Auth() {
   const [activeTab, setActiveTab] = useState("signup");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showOTP, setShowOTP] = useState(false);
   const [formData, setFormData] = useState<AuthFormData>({
     email: "",
     phone: "",
