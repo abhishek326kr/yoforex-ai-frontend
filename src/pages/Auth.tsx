@@ -300,7 +300,7 @@ export function Auth() {
         // Handle successful login (store token, redirect, etc.)
         login(token);
         // Redirect to dashboard
-        window.location.href = '/';
+        window.location.href = '/dashboard';
       }
     } catch (error: any) {
       if (error.response?.status === 422) {
