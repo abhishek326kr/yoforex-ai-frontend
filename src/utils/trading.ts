@@ -85,12 +85,12 @@ const COMMODITY_SYMBOLS: Record<string, string> = {
 };
 
 // List of indices that only support D, W, M timeframes
-const INDICES_WITH_EXTENDED_TIMEFRAMES = [
-  'SENSEX',
-  'NIFTY 50',
-  'NIFTY BANK',
-  'NIFTY NEXT 50'
-];
+// const INDICES_WITH_EXTENDED_TIMEFRAMES = [
+//   'SENSEX',
+//   'NIFTY 50',
+//   'NIFTY BANK',
+//   'NIFTY NEXT 50'
+// ];
 
 /**
  * Formats a trading pair for use with TradingView

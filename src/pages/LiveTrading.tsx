@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Activity,
   BarChart3,
@@ -7,10 +7,11 @@ import {
   DollarSign,
   Mic,
   Search,
-  Shield,
+  ShieldCheck,
   Target,
   Upload,
-  Zap
+  UserCheck,
+  Zap,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { ChevronDown } from 'lucide-react';
+import TradeExecution from '@/components/TradeExecution';
 import TradingViewWidget from '@/components/charts/TradingViewWidget';
 import { TradingLayout } from '@/components/layout/TradingLayout';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,15 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getTradingPairs } from '@/utils/trading';
 
 // Get all available trading pairs
-const tradingPairs = getTradingPairs();
-const { crypto: cryptoPairs, indianStocks: stockIndices, commodities: commodityPairs } = tradingPairs;
-// Use all forex pairs including commodities
-const forexPairs = [
-  'EUR/USD', 'USD/JPY', 'GBP/USD', 'AUD/USD', 'USD/CAD',
-  'USD/CHF', 'NZD/USD', 'EUR/GBP', 'EUR/JPY', 'GBP/JPY',
-  'XAU/USD', 'XAG/USD', 'XPT/USD', 'XPD/USD', 'OIL/USD',
-  'NATURALGAS/USD', 'COPPER/USD', 'PLATINUM/USD', 'PALLADIUM/USD'
-];
+const { forex: forexPairs, crypto: cryptoPairs, indices: stockIndices, commodities: commodityPairs } = getTradingPairs();
 
 // Helper function to generate market data
 const generateMarketData = (pairs: string[]) =>
@@ -56,19 +49,6 @@ const marketData = {
   indices: generateMarketData(stockIndices),
   commodities: generateMarketData(commodityPairs)
 };
-
-// Debug: Log the generated market data
-console.log('=== MARKET DATA DEBUG ===');
-console.log('Forex Pairs:', forexPairs);
-console.log('Crypto Pairs:', cryptoPairs);
-console.log('Stock Indices:', stockIndices);
-console.log('Commodity Pairs:', commodityPairs);
-console.log('Generated Market Data:', {
-  forex: marketData.forex.slice(0, 3) + '...',
-  crypto: marketData.crypto.slice(0, 3) + '...',
-  indices: marketData.indices.slice(0, 3) + '...',
-  commodities: marketData.commodities.slice(0, 3) + '...'
-});
 
 const timeframes = ["1M", "5M", "15M", "30M", "1H", "4H", "8H", "1D", "1W", "1MO"];
 
@@ -136,8 +116,8 @@ export function LiveTrading() {
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
 
   const toggleModel = (modelName: string) => {
-    setSelectedModels(prev => 
-      prev.includes(modelName) 
+    setSelectedModels(prev =>
+      prev.includes(modelName)
         ? prev.filter(m => m !== modelName)
         : [...prev, modelName]
     );
@@ -145,8 +125,8 @@ export function LiveTrading() {
 
   const toggleStrategy = (strategyName: string) => {
     if (selectedStrategies.length < 3 || selectedStrategies.includes(strategyName)) {
-      setSelectedStrategies(prev => 
-        prev.includes(strategyName) 
+      setSelectedStrategies(prev =>
+        prev.includes(strategyName)
           ? prev.filter(s => s !== strategyName)
           : [...prev, strategyName]
       );
@@ -181,57 +161,95 @@ export function LiveTrading() {
           </TabsList>
 
           {/* Automated Trading Tab */}
-          <TabsContent value="automated" className="flex-1 min-h-0 overflow-auto">
+          <TabsContent value="automated" className="flex-1 min-h-0 overflow-y-scroll">
             <div className="grid grid-cols-12 gap-4 h-full p-1">
               {/* Left Panel - Market Selection & AI Config */}
-              <div className="col-span-12 lg:col-span-3 flex flex-col space-y-4 pr-1 h-[calc(100vh-12rem)]">
+              <div className="col-span-12 lg:col-span-3 flex flex-col space-y-4 overflow-hidden pr-1 h-[calc(100vh-12rem)]">
                 {/* Market Selection */}
-                <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20">
-                  <h3 className="text-lg font-semibold text-foreground mb-4">Market Selection</h3>
-                  
-                  {/* Currency Pair Tabs */}
-                  <Tabs defaultValue="forex" className="mb-4">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="forex" className="text-xs">FOREX (67)</TabsTrigger>
-                      <TabsTrigger value="crypto" className="text-xs">CRYPTO (156)</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-
-                  {/* Search */}
-                  <div className="relative mb-4">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input placeholder="Search pairs..." className="pl-10" />
-                  </div>
-
-                  {/* Forex Pairs */}
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {forexPairs.map((item) => (
-                      <div
-                        key={item.pair}
-                        className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${
-                          selectedPair === item.pair 
-                            ? 'border-primary bg-primary/10' 
-                            : 'border-border/20 hover:border-border/40'
-                        }`}
-                        onClick={() => setSelectedPair(item.pair)}
-                      >
-                        <div className="flex items-center space-x-2">
-                          <Star className={`h-4 w-4 ${item.favorite ? 'text-yellow-500 fill-yellow-500' : 'text-muted-foreground'}`} />
-                          <span className="font-medium text-foreground">{item.pair}</span>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-foreground">{item.price}</p>
-                          <p className={`text-xs ${item.positive ? 'text-trading-profit' : 'text-trading-loss'}`}>
-                            {item.change}
-                          </p>
-                        </div>
+                <Card className="overflow-hidden bg-gradient-glass backdrop-blur-sm border-border/20">
+                  <Accordion type="single" collapsible defaultValue="market-selection" className="w-full">
+                    <AccordionItem value="market-selection" className="border-0">
+                      <div className="bg-gradient-to-r from-primary/5 to-transparent px-4 py-3">
+                        <AccordionTrigger className="hover:no-underline p-0">
+                          <h3 className="text-lg font-semibold text-foreground">Market Selection</h3>
+                        </AccordionTrigger>
                       </div>
-                    ))}
-                  </div>
+                      <AccordionContent className="px-4 pb-4 pt-2">
+                        {/* Currency Pair Tabs */}
+                        {/* Market Type Selection */}
+                        <div className="flex space-x-2 mb-4 pb-2">
+                          <Button
+                            variant={selectedMarket === 'forex' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setSelectedMarket('forex')}
+                          >
+                            Forex
+                          </Button>
+                          <Button
+                            variant={selectedMarket === 'crypto' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setSelectedMarket('crypto')}
+                          >
+                            Crypto
+                          </Button>
+                          <Button
+                            variant={selectedMarket === 'indices' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setSelectedMarket('indices')}
+                          >
+                            Indices
+                          </Button>
+                          <Button
+                            variant={selectedMarket === 'commodities' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setSelectedMarket('commodities')}
+                          >
+                            Commodities
+                          </Button>
+                        </div>
+
+                        {/* Search */}
+                        <div className="relative mb-4">
+                          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                          <Input placeholder={`Search ${selectedMarket} pairs...`} className="pl-10" />
+                        </div>
+
+                        {/* Market Pairs List */}
+                        <div className="space-y-4 flex-1 overflow-hidden pr-1 pb-2">
+                          {marketData[selectedMarket].map((pair, index) => (
+                            <div
+                              key={index}
+                              className={`flex items-center justify-between p-2 rounded-md cursor-pointer hover:bg-muted/50 ${selectedPair === pair.pair ? 'bg-muted/30' : ''}`}
+                              onClick={() => setSelectedPair(pair.pair)}
+                            >
+                              <div className="flex items-center space-x-2">
+                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                  {selectedMarket === 'crypto' ? (
+                                    <Zap className="h-4 w-4 text-yellow-500" />
+                                  ) : selectedMarket === 'indices' ? (
+                                    <BarChart3 className="h-4 w-4 text-blue-500" />
+                                  ) : (
+                                    <DollarSign className="h-4 w-4 text-primary" />
+                                  )}
+                                </div>
+                                <span className="text-sm font-medium">{pair.pair}</span>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm font-medium">{pair.price}</p>
+                                <p className={`text-xs ${pair.positive ? 'text-trading-profit' : 'text-trading-loss'}`}>
+                                  {pair.change}%
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </Card>
 
                 {/* Timeframe Selection */}
-                <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20">
+                <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20 flex-shrink-0">
                   <h3 className="text-lg font-semibold text-foreground mb-4">Timeframe</h3>
                   <div className="grid grid-cols-3 gap-2">
                     {timeframes.map((tf) => (
@@ -249,12 +267,11 @@ export function LiveTrading() {
                 </Card>
 
                 {/* AI Models */}
-                <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20">
+                <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20 flex-shrink-0 overflow-hidden">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-foreground">AI Models</h3>
                     <Badge variant="secondary">2,153 credits</Badge>
                   </div>
-
                   <div className="space-y-4">
                     {/* Free Tier */}
                     <div>
@@ -263,11 +280,10 @@ export function LiveTrading() {
                         {aiModels.free.map((model) => (
                           <div
                             key={model.name}
-                            className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                              selectedModels.includes(model.name)
-                                ? 'border-primary bg-gradient-secondary'
-                                : 'border-border/20 hover:border-border/40 bg-gradient-secondary/50'
-                            }`}
+                            className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedModels.includes(model.name)
+                              ? 'border-primary bg-gradient-secondary'
+                              : 'border-border/20 hover:border-border/40 bg-gradient-secondary/50'
+                              }`}
                             onClick={() => toggleModel(model.name)}
                           >
                             <div className="flex items-center justify-between mb-1">
@@ -280,7 +296,6 @@ export function LiveTrading() {
                         ))}
                       </div>
                     </div>
-
                     {/* Pro Tier */}
                     <div>
                       <h4 className="text-sm font-medium text-muted-foreground mb-2">Pro Tier</h4>
@@ -288,11 +303,10 @@ export function LiveTrading() {
                         {aiModels.pro.map((model) => (
                           <div
                             key={model.name}
-                            className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                              selectedModels.includes(model.name)
-                                ? 'border-primary bg-gradient-primary/20'
-                                : 'border-primary/30 hover:border-primary/50 bg-gradient-primary/10'
-                            }`}
+                            className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedModels.includes(model.name)
+                              ? 'border-primary bg-gradient-primary/20'
+                              : 'border-primary/30 hover:border-primary/50 bg-gradient-primary/10'
+                              }`}
                             onClick={() => toggleModel(model.name)}
                           >
                             <div className="flex items-center justify-between mb-1">
@@ -304,33 +318,32 @@ export function LiveTrading() {
                           </div>
                         ))}
                       </div>
+
                     </div>
                   </div>
                 </Card>
 
                 {/* Strategy Selection */}
-                <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20">
+                <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20 flex-shrink-0 overflow-hidden">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-foreground">Strategies</h3>
                     <Badge variant="outline">{selectedStrategies.length}/3</Badge>
                   </div>
-
                   <div className="space-y-2">
                     {strategies.map((strategy) => (
                       <div
                         key={strategy.name}
-                        className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                          selectedStrategies.includes(strategy.name)
-                            ? 'border-primary bg-primary/10'
-                            : selectedStrategies.length >= 3
+                        className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedStrategies.includes(strategy.name)
+                          ? 'border-primary bg-primary/10'
+                          : selectedStrategies.length >= 3
                             ? 'border-border/10 bg-muted/30 opacity-50 cursor-not-allowed'
                             : 'border-border/20 hover:border-border/40'
-                        }`}
+                          }`}
                         onClick={() => toggleStrategy(strategy.name)}
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-medium text-foreground">{strategy.name}</span>
-                          <Badge 
+                          <Badge
                             variant={strategy.tier === 'free' ? 'secondary' : strategy.tier === 'pro' ? 'default' : 'destructive'}
                             className="text-xs"
                           >
@@ -348,8 +361,8 @@ export function LiveTrading() {
               </div>
 
               {/* Center Panel - Trading Chart */}
-              <div className="col-span-12 lg:col-span-6">
-                <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20 h-full">
+              <div className="col-span-12 lg:col-span-6 flex flex-col h-full">
+                <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20 flex-1 flex flex-col h-full">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="text-lg font-semibold text-foreground">{selectedPair} Chart</h3>
@@ -359,18 +372,20 @@ export function LiveTrading() {
                       {selectedTimeframe} Timeframe
                     </Badge>
                   </div>
-                  
-                  {/* Placeholder for TradingView Chart */}
-                  <div className="h-[600px] bg-gradient-dark rounded-lg border border-border/20 flex items-center justify-center">
-                    <div className="text-center">
-                      <BarChart3 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                      <h4 className="text-lg font-medium text-foreground mb-2">TradingView Chart Integration</h4>
-                      <p className="text-sm text-muted-foreground">Professional charting with AI signal overlays</p>
+                  {/* TradingView Chart */}
+                  <div className="flex-1 min-h-0 bg-gradient-dark rounded-lg border border-border/20 overflow-hidden">
+                    <div className="h-full w-full">
+                      <TradingViewWidget
+                        symbol={selectedPair}
+                        interval={selectedTimeframe.replace('M', '')}
+                        theme="dark"
+                        autosize={true}
+                        hideSideToolbar={false}
+                      />
                     </div>
                   </div>
-
                   {/* Chart Controls */}
-                  <div className="flex items-center justify-between mt-4">
+                  <div className="flex items-center justify-between mt-4 flex-wrap gap-2">
                     <div className="flex items-center space-x-2">
                       <Button size="sm" variant="outline">Drawing Tools</Button>
                       <Button size="sm" variant="outline">Indicators</Button>
@@ -387,7 +402,7 @@ export function LiveTrading() {
               </div>
 
               {/* Right Panel - Live Signals */}
-              <div className="col-span-12 lg:col-span-3 space-y-6">
+              <div className="col-span-12 lg:col-span-3 flex flex-col space-y-4 overflow-hidden h-full">
                 <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-foreground">Live Signals</h3>
@@ -396,13 +411,12 @@ export function LiveTrading() {
                       <span className="text-xs text-muted-foreground">Real-time</span>
                     </div>
                   </div>
-
                   <div className="space-y-4">
                     {liveSignals.map((signal, index) => (
                       <div key={index} className="p-4 rounded-lg bg-gradient-dark border border-border/10">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center space-x-2">
-                            <Badge 
+                            <Badge
                               variant={signal.direction === 'BUY' ? 'default' : 'destructive'}
                               className={signal.direction === 'BUY' ? 'bg-gradient-profit' : 'bg-gradient-loss'}
                             >
@@ -417,7 +431,6 @@ export function LiveTrading() {
                             </div>
                           </div>
                         </div>
-
                         <div className="grid grid-cols-3 gap-2 mb-3">
                           <div className="text-center p-2 bg-card/30 rounded">
                             <p className="text-xs text-muted-foreground">Entry</p>
@@ -432,17 +445,14 @@ export function LiveTrading() {
                             <p className="text-sm font-medium text-trading-profit">{signal.tp}</p>
                           </div>
                         </div>
-
                         <div className="mb-3">
                           <p className="text-xs text-muted-foreground mb-1">AI Reasoning:</p>
                           <p className="text-xs text-foreground/80 leading-relaxed">{signal.reasoning}</p>
                         </div>
-
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <span>{signal.aiModel}</span>
                           <span>{signal.time}</span>
                         </div>
-
                         <div className="flex space-x-2 mt-3">
                           <Button size="sm" className="flex-1 bg-gradient-profit hover:bg-accent/90">
                             Execute Trade
@@ -473,17 +483,17 @@ export function LiveTrading() {
                   </div>
                 </Card>
               </div>
+
             </div>
           </TabsContent>
 
           {/* Manual AI Confirmation Tab */}
-          <TabsContent value="manual">
-            <div className="grid grid-cols-12 gap-6 min-h-[800px]">
+          <TabsContent value="manual" className="flex-1 min-h-0">
+            <div className="grid grid-cols-12 gap-4 min-h-[800px]">
               {/* Left Panel - Analysis Input */}
               <div className="col-span-12 lg:col-span-3 space-y-6">
                 <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20">
                   <h3 className="text-lg font-semibold text-foreground mb-4">Analysis Input</h3>
-                  
                   {/* Upload Section */}
                   <div className="mb-6">
                     <h4 className="text-sm font-medium text-foreground mb-2">Upload Chart</h4>
@@ -493,7 +503,6 @@ export function LiveTrading() {
                       <p className="text-xs text-muted-foreground mt-1">PNG, JPG, WebP up to 10MB</p>
                     </div>
                   </div>
-
                   {/* Text Analysis */}
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
@@ -523,7 +532,6 @@ export function LiveTrading() {
                       </Select>
                     </div>
                   </div>
-
                   {/* Input Type Selection */}
                   <div className="mb-6">
                     <h4 className="text-sm font-medium text-foreground mb-2">Analysis Type</h4>
@@ -548,7 +556,6 @@ export function LiveTrading() {
                       </Button>
                     </div>
                   </div>
-
                   {/* AI Model Selection */}
                   <div>
                     <h4 className="text-sm font-medium text-foreground mb-2">AI Models</h4>
@@ -566,7 +573,6 @@ export function LiveTrading() {
                         </div>
                       ))}
                     </div>
-                    
                     <Button className="w-full mt-4 bg-gradient-primary hover:bg-primary-hover">
                       <Brain className="h-4 w-4 mr-2" />
                       Analyze with AI
@@ -588,13 +594,16 @@ export function LiveTrading() {
                       <Button size="sm" variant="outline">Annotate</Button>
                     </div>
                   </div>
-                  
                   {/* Chart Placeholder */}
-                  <div className="h-[600px] bg-gradient-dark rounded-lg border border-border/20 flex items-center justify-center">
-                    <div className="text-center">
-                      <BarChart3 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                      <h4 className="text-lg font-medium text-foreground mb-2">Interactive TradingView Chart</h4>
-                      <p className="text-sm text-muted-foreground">Full drawing tools and annotation capabilities</p>
+                  <div className="h-[600px] bg-gradient-dark rounded-lg border border-border/20 overflow-hidden">
+                    <div className="h-full w-full">
+                      <TradingViewWidget
+                        symbol={selectedPair}
+                        interval={selectedTimeframe.replace('M', '')}
+                        theme="dark"
+                        autosize={true}
+                        hideSideToolbar={false}
+                      />
                     </div>
                   </div>
                 </Card>
@@ -602,214 +611,109 @@ export function LiveTrading() {
 
               {/* Right Panel - AI Analysis Results */}
               <div className="col-span-12 lg:col-span-3 space-y-6">
-                <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20">
-                  <h3 className="text-lg font-semibold text-foreground mb-4">AI Analysis Results</h3>
-                  
-                  {/* Individual Model Responses */}
-                  <div className="space-y-4 mb-6">
-                    <div className="p-4 rounded-lg bg-gradient-primary/10 border border-primary/20">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-foreground">GPT-4 Omni</span>
-                        <div className="flex items-center space-x-1">
-                          <div className="h-2 w-2 rounded-full bg-primary" />
-                          <span className="text-xs text-foreground">87%</span>
+                <Card className="overflow-hidden bg-gradient-glass backdrop-blur-sm border-border/20">
+                  <Accordion type="single" collapsible defaultValue="ai-analysis" className="w-full">
+                    <AccordionItem value="ai-analysis" className="border-0">
+                      <div className="bg-gradient-to-r from-primary/5 to-transparent px-4 py-3">
+                        <AccordionTrigger className="hover:no-underline p-0">
+                          <h3 className="text-lg font-semibold text-foreground">AI Analysis Results</h3>
+                        </AccordionTrigger>
+                      </div>
+                      <AccordionContent className="px-4 pb-4 pt-2">
+                        {/* Individual Model Responses */}
+                        <div className="space-y-4 mb-6">
+                          <div className="p-4 rounded-lg bg-gradient-primary/10 border border-primary/20">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-foreground">GPT-4 Omni</span>
+                              <div className="flex items-center space-x-1">
+                                <div className="h-2 w-2 rounded-full bg-primary" />
+                                <span className="text-xs text-foreground">87%</span>
+                              </div>
+                            </div>
+                            <p className="text-xs text-foreground/80 mb-2">
+                              Strong bullish momentum identified with breakout above key resistance. RSI divergence suggests continuation.
+                            </p>
+                            <Badge className="bg-gradient-profit text-xs">BUY Signal</Badge>
+                          </div>
+                          <div className="p-4 rounded-lg bg-gradient-primary/10 border border-primary/20">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-foreground">Claude 3.5 Sonnet</span>
+                              <div className="flex items-center space-x-1">
+                                <div className="h-2 w-2 rounded-full bg-primary" />
+                                <span className="text-xs text-foreground">91%</span>
+                              </div>
+                            </div>
+                            <p className="text-xs text-foreground/80 mb-2">
+                              Market structure supports bullish bias. Clean break of previous high with strong volume confirmation.
+                            </p>
+                            <Badge className="bg-gradient-profit text-xs">BUY Signal</Badge>
+                          </div>
                         </div>
-                      </div>
-                      <p className="text-xs text-foreground/80 mb-2">
-                        Strong bullish momentum identified with breakout above key resistance. RSI divergence suggests continuation.
-                      </p>
-                      <Badge className="bg-gradient-profit text-xs">BUY Signal</Badge>
-                    </div>
-
-                    <div className="p-4 rounded-lg bg-gradient-primary/10 border border-primary/20">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-foreground">Claude 3.5 Sonnet</span>
-                        <div className="flex items-center space-x-1">
-                          <div className="h-2 w-2 rounded-full bg-primary" />
-                          <span className="text-xs text-foreground">91%</span>
+                        {/* Consensus Recommendation */}
+                        <div className="p-4 rounded-lg bg-gradient-profit/20 border border-accent/30">
+                          <div className="text-center mb-4">
+                            <Badge className="bg-gradient-profit text-lg px-4 py-2 mb-2">BUY</Badge>
+                            <div className="flex items-center justify-center space-x-1">
+                              <div className="h-3 w-3 rounded-full bg-accent" />
+                              <span className="text-sm font-medium text-foreground">89% Confidence</span>
+                            </div>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-foreground/80">Entry Price:</span>
+                              <span className="font-medium text-foreground">1.0847</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-foreground/80">Stop Loss:</span>
+                              <span className="font-medium text-trading-loss">1.0820</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-foreground/80">Take Profit:</span>
+                              <span className="font-medium text-trading-profit">1.0875</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-foreground/80">Risk/Reward:</span>
+                              <span className="font-medium text-foreground">1:1.04</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-foreground/80">Position Size:</span>
+                              <span className="font-medium text-foreground">2% of account</span>
+                            </div>
+                          </div>
+                          <Button className="w-full mt-4 bg-gradient-profit hover:bg-accent/90">
+                            <Target className="h-4 w-4 mr-2" />
+                            Execute Trade
+                          </Button>
                         </div>
-                      </div>
-                      <p className="text-xs text-foreground/80 mb-2">
-                        Market structure supports bullish bias. Clean break of previous high with strong volume confirmation.
-                      </p>
-                      <Badge className="bg-gradient-profit text-xs">BUY Signal</Badge>
-                    </div>
-                  </div>
-
-                  {/* Consensus Recommendation */}
-                  <div className="p-4 rounded-lg bg-gradient-profit/20 border border-accent/30">
-                    <div className="text-center mb-4">
-                      <Badge className="bg-gradient-profit text-lg px-4 py-2 mb-2">BUY</Badge>
-                      <div className="flex items-center justify-center space-x-1">
-                        <div className="h-3 w-3 rounded-full bg-accent" />
-                        <span className="text-sm font-medium text-foreground">89% Confidence</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-foreground/80">Entry Price:</span>
-                        <span className="font-medium text-foreground">1.0847</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-foreground/80">Stop Loss:</span>
-                        <span className="font-medium text-trading-loss">1.0820</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-foreground/80">Take Profit:</span>
-                        <span className="font-medium text-trading-profit">1.0875</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-foreground/80">Risk/Reward:</span>
-                        <span className="font-medium text-foreground">1:1.04</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-foreground/80">Position Size:</span>
-                        <span className="font-medium text-foreground">2% of account</span>
-                      </div>
-                    </div>
-
-                    <Button className="w-full mt-4 bg-gradient-profit hover:bg-accent/90">
-                      <Target className="h-4 w-4 mr-2" />
-                      Execute Trade
-                    </Button>
-                  </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </Card>
               </div>
             </div>
           </TabsContent>
+
+
+          {/* Execution Results Component */}
+          <Accordion type="single" collapsible defaultValue="trade-execution" className="w-full">
+            <AccordionItem value="trade-execution" className="border-0">
+              <div className="bg-gradient-to-r from-primary/5 to-transparent px-4 py-3">
+                <AccordionTrigger className="hover:no-underline p-0">
+                  <h3 className="text-lg font-semibold text-foreground">Trade Execution Analysis</h3>
+                </AccordionTrigger>
+              </div>
+              <AccordionContent className="px-4 pb-4 pt-2">
+                <TradeExecution />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+
+
+
+
+
+
         </Tabs>
-
-        {/* Execution Results Component */}
-        <Card className="p-6 bg-gradient-glass backdrop-blur-sm border-border/20">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Trade Execution Analysis</h3>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Trade Signal & Entry */}
-            <div className="space-y-4">
-              <h4 className="text-sm font-medium text-muted-foreground">Signal & Entry</h4>
-              <div className="p-4 rounded-lg bg-gradient-profit/20 border border-accent/30">
-                <div className="flex items-center justify-center mb-3">
-                  <Badge className="bg-gradient-profit text-lg px-4 py-2">BUY EUR/USD</Badge>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-foreground/80">Confidence:</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="h-2 w-16 bg-muted rounded-full overflow-hidden">
-                        <div className="h-full w-[89%] bg-accent rounded-full" />
-                      </div>
-                      <span className="font-medium text-foreground">89%</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground/80">Entry Price:</span>
-                    <span className="font-medium text-foreground">1.0847</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground/80">Position Size:</span>
-                    <span className="font-medium text-foreground">$2,000 (2%)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground/80">Time Sensitivity:</span>
-                    <Badge variant="secondary" className="text-xs">
-                      <Clock className="h-3 w-3 mr-1" />
-                      5 minutes
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Risk Management */}
-            <div className="space-y-4">
-              <h4 className="text-sm font-medium text-muted-foreground">Risk Management</h4>
-              <div className="p-4 rounded-lg bg-gradient-loss/20 border border-destructive/30">
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-foreground/80">Stop Loss:</span>
-                    <span className="font-medium text-trading-loss">1.0820 (-27 pips)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground/80">Take Profit 1:</span>
-                    <span className="font-medium text-trading-profit">1.0875 (+28 pips)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground/80">Take Profit 2:</span>
-                    <span className="font-medium text-trading-profit">1.0895 (+48 pips)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground/80">Risk/Reward:</span>
-                    <span className="font-medium text-foreground">1:1.04</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground/80">Max Loss:</span>
-                    <span className="font-medium text-trading-loss">$54.00 (2.7%)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground/80">Margin Req:</span>
-                    <span className="font-medium text-foreground">$66.95</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* AI Reasoning */}
-            <div className="space-y-4">
-              <h4 className="text-sm font-medium text-muted-foreground">AI Consensus Reasoning</h4>
-              <div className="p-4 rounded-lg bg-gradient-primary/20 border border-primary/30">
-                <div className="space-y-3">
-                  <div className="text-sm">
-                    <span className="text-foreground/80">Multi-AI Analysis:</span>
-                    <div className="mt-1 space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-xs text-muted-foreground">GPT-4 Omni</span>
-                        <Badge className="bg-gradient-profit text-xs">BUY 87%</Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-xs text-muted-foreground">Claude 3.5</span>
-                        <Badge className="bg-gradient-profit text-xs">BUY 91%</Badge>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="text-sm">
-                    <span className="text-foreground/80">Key Factors:</span>
-                    <ul className="mt-1 space-y-1 text-xs text-foreground/70">
-                      <li>• Breakout above 1.0840 resistance</li>
-                      <li>• RSI bullish divergence detected</li>
-                      <li>• Volume confirmation present</li>
-                      <li>• USD weakness in session</li>
-                    </ul>
-                  </div>
-
-                  <div className="text-sm">
-                    <span className="text-foreground/80">Market Timing:</span>
-                    <p className="text-xs text-foreground/70 mt-1">
-                      European session opening with high volatility expected. News calendar clear for next 2 hours.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center justify-center space-x-4 mt-6">
-            <Button size="lg" className="bg-gradient-profit hover:bg-accent/90 px-8">
-              <Target className="h-5 w-5 mr-2" />
-              Execute Trade Now
-            </Button>
-            <Button size="lg" variant="outline" className="px-8">
-              <Shield className="h-5 w-5 mr-2" />
-              Set Alert Only
-            </Button>
-            <Button size="lg" variant="outline" className="px-8">
-              <BarChart3 className="h-5 w-5 mr-2" />
-              Modify Parameters
-            </Button>
-          </div>
-        </Card>
       </div>
     </TradingLayout>
   );
