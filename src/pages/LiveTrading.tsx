@@ -1,141 +1,41 @@
 import { useState } from 'react';
 import {
   Activity,
-  BarChart3,
-  Brain,
-  Clock,
-  DollarSign,
-  Mic,
-  Search,
-  ShieldCheck,
   Target,
   Upload,
-  UserCheck,
   Zap,
+  Mic
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import TradeExecution from '@/components/TradeExecution';
+import MarketSelection from '@/components/MarketSelection';
 import TradingViewWidget from '@/components/charts/TradingViewWidget';
 import { TradingLayout } from '@/components/layout/TradingLayout';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getTradingPairs } from '@/utils/trading';
+import LiveSignals from '@/components/LiveSignals';
+import AiModelsSelection from '@/components/AiModelsSelection';
+import TimeframeSelection from '@/components/TimeframeSelection';
+import { TradingChart } from '@/components/TradingChart';
+import StrategySelection from '@/components/StrategySelection';
+import ActivePositions from '@/components/ActivePositions';
 
-// Get all available trading pairs
-const { forex: forexPairs, crypto: cryptoPairs, indices: stockIndices, commodities: commodityPairs } = getTradingPairs();
-
-// Helper function to generate market data
-const generateMarketData = (pairs: string[]) =>
-  pairs.map(pair => ({
-    pair,
-    price: (Math.random() * 100).toFixed(4),
-    change: `${Math.random() > 0.5 ? '+' : '-'}${(Math.random() * 0.5).toFixed(4)}`,
-    positive: Math.random() > 0.5,
-    favorite: Math.random() > 0.7
-  }));
-
-// Define market types
-type MarketType = 'forex' | 'crypto' | 'indices' | 'commodities';
-
-// Generate market data for all pairs
-const marketData = {
-  forex: generateMarketData(forexPairs),
-  crypto: generateMarketData(cryptoPairs),
-  indices: generateMarketData(stockIndices),
-  commodities: generateMarketData(commodityPairs)
-};
-
-const timeframes = ["1M", "5M", "15M", "30M", "1H", "4H", "8H", "1D", "1W", "1MO"];
-
-const aiModels = {
-  free: [
-    { name: "Claude Haiku", description: "Fast technical analysis", credits: 1, accuracy: 78 },
-    { name: "Gemini 1.5 Flash", description: "Market sentiment", credits: 1, accuracy: 75 },
-    { name: "Mistral 7B", description: "Pattern recognition", credits: 1, accuracy: 72 },
-    { name: "Llama 3.1 8B", description: "Support/resistance", credits: 1, accuracy: 74 }
-  ],
-  pro: [
-    { name: "GPT-4 Omni", description: "Advanced analysis", credits: 150, accuracy: 89 },
-    { name: "Claude 3.5 Sonnet", description: "Deep patterns", credits: 150, accuracy: 91 },
-    { name: "Gemini 1.5 Pro", description: "News integration", credits: 150, accuracy: 87 }
-  ],
-  max: [
-    { name: "GPT-4 Turbo", description: "Institutional analysis", credits: 100, accuracy: 94 },
-    { name: "Claude 3 Opus", description: "Deep reasoning", credits: 100, accuracy: 92 },
-    { name: "Grok AI", description: "Pay-per-use", credits: "Variable", accuracy: 88 }
-  ]
-};
-
-const strategies = [
-  { name: "Breakout Strategy", credits: 2, winRate: 68, risk: "Medium", tier: "free" },
-  { name: "Fibonacci Retracement", credits: 2, winRate: 72, risk: "Low", tier: "free" },
-  { name: "Trend Following", credits: 2, winRate: 75, risk: "Low", tier: "free" },
-  { name: "ICT Concept", credits: 5, winRate: 81, risk: "Medium", tier: "pro" },
-  { name: "SMC Strategy", credits: 5, winRate: 79, risk: "Medium", tier: "pro" },
-  { name: "Advanced SMC", credits: 8, winRate: 84, risk: "High", tier: "max" },
-  { name: "Custom Strategy Builder", credits: 10, winRate: 86, risk: "Variable", tier: "max" }
-];
-
-const liveSignals = [
-  {
-    pair: "EUR/USD",
-    direction: "BUY",
-    confidence: 89,
-    entry: "1.0847",
-    sl: "1.0820",
-    tp: "1.0875",
-    time: "2 min ago",
-    aiModel: "GPT-4 Omni",
-    reasoning: "Strong bullish momentum with RSI divergence and breakout above key resistance level."
-  },
-  {
-    pair: "GBP/JPY",
-    direction: "SELL",
-    confidence: 82,
-    entry: "189.45",
-    sl: "190.20",
-    tp: "188.20",
-    time: "8 min ago",
-    aiModel: "Claude 3.5 Sonnet",
-    reasoning: "Bearish engulfing pattern at key resistance with declining volume."
-  }
-];
 
 export function LiveTrading() {
-  const [selectedTimeframe, setSelectedTimeframe] = useState("1H");
-  const [selectedMarket, setSelectedMarket] = useState<MarketType>('forex');
   const [selectedPair, setSelectedPair] = useState("EUR/USD");
-  const [selectedModels, setSelectedModels] = useState<string[]>([]);
+  const [selectedTimeframe, setSelectedTimeframe] = useState("1H");
   const [selectedStrategies, setSelectedStrategies] = useState<string[]>([]);
   const [analysisText, setAnalysisText] = useState("");
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
 
-  const toggleModel = (modelName: string) => {
-    setSelectedModels(prev =>
-      prev.includes(modelName)
-        ? prev.filter(m => m !== modelName)
-        : [...prev, modelName]
-    );
-  };
-
-  const toggleStrategy = (strategyName: string) => {
-    if (selectedStrategies.length < 3 || selectedStrategies.includes(strategyName)) {
-      setSelectedStrategies(prev =>
-        prev.includes(strategyName)
-          ? prev.filter(s => s !== strategyName)
-          : [...prev, strategyName]
-      );
-    }
-  };
-
   return (
     <TradingLayout>
-      <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
+      <div className="flex flex-col min-h-[calc(100vh-4rem)] overflow-y-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 flex-shrink-0">
           <div>
@@ -161,334 +61,49 @@ export function LiveTrading() {
           </TabsList>
 
           {/* Automated Trading Tab */}
-          <TabsContent value="automated" className="flex-1 min-h-0 overflow-y-scroll">
-            <div className="grid grid-cols-12 gap-4 h-full p-1">
+          <TabsContent value="automated" className="flex-1 min-h-0 overflow-y-auto">
+            <div className="grid grid-cols-12 gap-4 p-1">
               {/* Left Panel - Market Selection & AI Config */}
-              <div className="col-span-12 lg:col-span-3 flex flex-col space-y-4 overflow-hidden pr-1 h-[calc(100vh-12rem)]">
+              <div className="col-span-12 lg:col-span-3 flex flex-col space-y-4">
+                
                 {/* Market Selection */}
-                <Card className="overflow-hidden bg-gradient-glass backdrop-blur-sm border-border/20">
-                  <Accordion type="single" collapsible defaultValue="market-selection" className="w-full">
-                    <AccordionItem value="market-selection" className="border-0">
-                      <div className="bg-gradient-to-r from-primary/5 to-transparent px-4 py-3">
-                        <AccordionTrigger className="hover:no-underline p-0">
-                          <h3 className="text-lg font-semibold text-foreground">Market Selection</h3>
-                        </AccordionTrigger>
-                      </div>
-                      <AccordionContent className="px-4 pb-4 pt-2">
-                        {/* Currency Pair Tabs */}
-                        {/* Market Type Selection */}
-                        <div className="flex space-x-2 mb-4 pb-2">
-                          <Button
-                            variant={selectedMarket === 'forex' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setSelectedMarket('forex')}
-                          >
-                            Forex
-                          </Button>
-                          <Button
-                            variant={selectedMarket === 'crypto' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setSelectedMarket('crypto')}
-                          >
-                            Crypto
-                          </Button>
-                          <Button
-                            variant={selectedMarket === 'indices' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setSelectedMarket('indices')}
-                          >
-                            Indices
-                          </Button>
-                          <Button
-                            variant={selectedMarket === 'commodities' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setSelectedMarket('commodities')}
-                          >
-                            Commodities
-                          </Button>
-                        </div>
-
-                        {/* Search */}
-                        <div className="relative mb-4">
-                          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                          <Input placeholder={`Search ${selectedMarket} pairs...`} className="pl-10" />
-                        </div>
-
-                        {/* Market Pairs List */}
-                        <div className="space-y-4 flex-1 overflow-hidden pr-1 pb-2">
-                          {marketData[selectedMarket].map((pair, index) => (
-                            <div
-                              key={index}
-                              className={`flex items-center justify-between p-2 rounded-md cursor-pointer hover:bg-muted/50 ${selectedPair === pair.pair ? 'bg-muted/30' : ''}`}
-                              onClick={() => setSelectedPair(pair.pair)}
-                            >
-                              <div className="flex items-center space-x-2">
-                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                  {selectedMarket === 'crypto' ? (
-                                    <Zap className="h-4 w-4 text-yellow-500" />
-                                  ) : selectedMarket === 'indices' ? (
-                                    <BarChart3 className="h-4 w-4 text-blue-500" />
-                                  ) : (
-                                    <DollarSign className="h-4 w-4 text-primary" />
-                                  )}
-                                </div>
-                                <span className="text-sm font-medium">{pair.pair}</span>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-sm font-medium">{pair.price}</p>
-                                <p className={`text-xs ${pair.positive ? 'text-trading-profit' : 'text-trading-loss'}`}>
-                                  {pair.change}%
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                </Card>
-
+                <MarketSelection 
+                  selectedPair={selectedPair}
+                  onPairSelect={setSelectedPair}
+                />
+                
                 {/* Timeframe Selection */}
-                <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20 flex-shrink-0">
-                  <h3 className="text-lg font-semibold text-foreground mb-4">Timeframe</h3>
-                  <div className="grid grid-cols-3 gap-2">
-                    {timeframes.map((tf) => (
-                      <Button
-                        key={tf}
-                        variant={selectedTimeframe === tf ? "default" : "outline"}
-                        size="sm"
-                        className={selectedTimeframe === tf ? "bg-gradient-primary" : ""}
-                        onClick={() => setSelectedTimeframe(tf)}
-                      >
-                        {tf}
-                      </Button>
-                    ))}
-                  </div>
-                </Card>
+                <TimeframeSelection 
+                  selectedTimeframe={selectedTimeframe}
+                  onTimeframeSelect={setSelectedTimeframe}
+                />
 
                 {/* AI Models */}
-                <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20 flex-shrink-0 overflow-hidden">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-foreground">AI Models</h3>
-                    <Badge variant="secondary">2,153 credits</Badge>
-                  </div>
-                  <div className="space-y-4">
-                    {/* Free Tier */}
-                    <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-2">Free Tier</h4>
-                      <div className="space-y-2">
-                        {aiModels.free.map((model) => (
-                          <div
-                            key={model.name}
-                            className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedModels.includes(model.name)
-                              ? 'border-primary bg-gradient-secondary'
-                              : 'border-border/20 hover:border-border/40 bg-gradient-secondary/50'
-                              }`}
-                            onClick={() => toggleModel(model.name)}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm font-medium text-foreground">{model.name}</span>
-                              <Badge variant="outline" className="text-xs">{model.credits} credit</Badge>
-                            </div>
-                            <p className="text-xs text-muted-foreground">{model.description}</p>
-                            <p className="text-xs text-trading-neutral mt-1">{model.accuracy}% accuracy</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    {/* Pro Tier */}
-                    <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-2">Pro Tier</h4>
-                      <div className="space-y-2">
-                        {aiModels.pro.map((model) => (
-                          <div
-                            key={model.name}
-                            className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedModels.includes(model.name)
-                              ? 'border-primary bg-gradient-primary/20'
-                              : 'border-primary/30 hover:border-primary/50 bg-gradient-primary/10'
-                              }`}
-                            onClick={() => toggleModel(model.name)}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm font-medium text-foreground">{model.name}</span>
-                              <Badge className="bg-gradient-primary text-xs">{model.credits} credits</Badge>
-                            </div>
-                            <p className="text-xs text-muted-foreground">{model.description}</p>
-                            <p className="text-xs text-primary mt-1">{model.accuracy}% accuracy</p>
-                          </div>
-                        ))}
-                      </div>
-
-                    </div>
-                  </div>
-                </Card>
+                <AiModelsSelection />
 
                 {/* Strategy Selection */}
-                <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20 flex-shrink-0 overflow-hidden">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-foreground">Strategies</h3>
-                    <Badge variant="outline">{selectedStrategies.length}/3</Badge>
-                  </div>
-                  <div className="space-y-2">
-                    {strategies.map((strategy) => (
-                      <div
-                        key={strategy.name}
-                        className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedStrategies.includes(strategy.name)
-                          ? 'border-primary bg-primary/10'
-                          : selectedStrategies.length >= 3
-                            ? 'border-border/10 bg-muted/30 opacity-50 cursor-not-allowed'
-                            : 'border-border/20 hover:border-border/40'
-                          }`}
-                        onClick={() => toggleStrategy(strategy.name)}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium text-foreground">{strategy.name}</span>
-                          <Badge
-                            variant={strategy.tier === 'free' ? 'secondary' : strategy.tier === 'pro' ? 'default' : 'destructive'}
-                            className="text-xs"
-                          >
-                            {strategy.credits} credits
-                          </Badge>
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-trading-profit">{strategy.winRate}% win rate</span>
-                          <span className="text-muted-foreground">{strategy.risk} risk</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
+                <StrategySelection/>
               </div>
 
               {/* Center Panel - Trading Chart */}
-              <div className="col-span-12 lg:col-span-6 flex flex-col h-full">
-                <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20 flex-1 flex flex-col h-full">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-foreground">{selectedPair} Chart</h3>
-                      <p className="text-sm text-muted-foreground">TradingView Professional Chart</p>
-                    </div>
-                    <Badge variant="outline" className="bg-trading-profit/20 text-trading-profit">
-                      {selectedTimeframe} Timeframe
-                    </Badge>
-                  </div>
-                  {/* TradingView Chart */}
-                  <div className="flex-1 min-h-0 bg-gradient-dark rounded-lg border border-border/20 overflow-hidden">
-                    <div className="h-full w-full">
-                      <TradingViewWidget
-                        symbol={selectedPair}
-                        interval={selectedTimeframe.replace('M', '')}
-                        theme="dark"
-                        autosize={true}
-                        hideSideToolbar={false}
-                      />
-                    </div>
-                  </div>
-                  {/* Chart Controls */}
-                  <div className="flex items-center justify-between mt-4 flex-wrap gap-2">
-                    <div className="flex items-center space-x-2">
-                      <Button size="sm" variant="outline">Drawing Tools</Button>
-                      <Button size="sm" variant="outline">Indicators</Button>
-                      <Button size="sm" variant="outline">Save Layout</Button>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button size="sm" className="bg-gradient-primary">
-                        <Brain className="h-4 w-4 mr-2" />
-                        Analyze Chart
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              </div>
+              <TradingChart 
+                selectedPair={selectedPair}
+                selectedTimeframe={selectedTimeframe}
+              />
 
               {/* Right Panel - Live Signals */}
-              <div className="col-span-12 lg:col-span-3 flex flex-col space-y-4 overflow-hidden h-full">
-                <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-foreground">Live Signals</h3>
-                    <div className="flex items-center space-x-1">
-                      <div className="h-2 w-2 rounded-full bg-trading-profit animate-pulse" />
-                      <span className="text-xs text-muted-foreground">Real-time</span>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    {liveSignals.map((signal, index) => (
-                      <div key={index} className="p-4 rounded-lg bg-gradient-dark border border-border/10">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center space-x-2">
-                            <Badge
-                              variant={signal.direction === 'BUY' ? 'default' : 'destructive'}
-                              className={signal.direction === 'BUY' ? 'bg-gradient-profit' : 'bg-gradient-loss'}
-                            >
-                              {signal.direction}
-                            </Badge>
-                            <span className="font-medium text-foreground">{signal.pair}</span>
-                          </div>
-                          <div className="text-right">
-                            <div className="flex items-center space-x-1">
-                              <div className="h-2 w-2 rounded-full bg-primary" />
-                              <span className="text-sm font-medium text-foreground">{signal.confidence}%</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 mb-3">
-                          <div className="text-center p-2 bg-card/30 rounded">
-                            <p className="text-xs text-muted-foreground">Entry</p>
-                            <p className="text-sm font-medium text-foreground">{signal.entry}</p>
-                          </div>
-                          <div className="text-center p-2 bg-card/30 rounded">
-                            <p className="text-xs text-muted-foreground">SL</p>
-                            <p className="text-sm font-medium text-trading-loss">{signal.sl}</p>
-                          </div>
-                          <div className="text-center p-2 bg-card/30 rounded">
-                            <p className="text-xs text-muted-foreground">TP</p>
-                            <p className="text-sm font-medium text-trading-profit">{signal.tp}</p>
-                          </div>
-                        </div>
-                        <div className="mb-3">
-                          <p className="text-xs text-muted-foreground mb-1">AI Reasoning:</p>
-                          <p className="text-xs text-foreground/80 leading-relaxed">{signal.reasoning}</p>
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>{signal.aiModel}</span>
-                          <span>{signal.time}</span>
-                        </div>
-                        <div className="flex space-x-2 mt-3">
-                          <Button size="sm" className="flex-1 bg-gradient-profit hover:bg-accent/90">
-                            Execute Trade
-                          </Button>
-                          <Button size="sm" variant="outline" className="flex-1">
-                            Copy Signal
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
+              <div className="col-span-12 lg:col-span-3 flex flex-col space-y-4">
+                <LiveSignals />
 
                 {/* Active Positions */}
-                <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20">
-                  <h3 className="text-lg font-semibold text-foreground mb-4">Active Positions</h3>
-                  <div className="space-y-3">
-                    <div className="p-3 rounded-lg bg-gradient-dark border border-border/10">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-foreground">EUR/USD</span>
-                        <Badge className="bg-gradient-profit text-xs">+$124.50</Badge>
-                      </div>
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Entry: 1.0820</span>
-                        <span>Current: 1.0847</span>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
+                <ActivePositions/>
               </div>
 
             </div>
           </TabsContent>
 
           {/* Manual AI Confirmation Tab */}
-          <TabsContent value="manual" className="flex-1 min-h-0">
+          <TabsContent value="manual" className='flex-1 min-h-0 flex flex-col'>
             <div className="grid grid-cols-12 gap-4 min-h-[800px]">
               {/* Left Panel - Analysis Input */}
               <div className="col-span-12 lg:col-span-3 space-y-6">
@@ -557,27 +172,7 @@ export function LiveTrading() {
                     </div>
                   </div>
                   {/* AI Model Selection */}
-                  <div>
-                    <h4 className="text-sm font-medium text-foreground mb-2">AI Models</h4>
-                    <div className="space-y-2">
-                      {aiModels.pro.slice(0, 2).map((model) => (
-                        <div
-                          key={model.name}
-                          className="p-3 rounded-lg border border-primary/30 bg-gradient-primary/10 cursor-pointer"
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm font-medium text-foreground">{model.name}</span>
-                            <Badge className="bg-gradient-primary text-xs">{model.credits} credits</Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground">{model.description}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <Button className="w-full mt-4 bg-gradient-primary hover:bg-primary-hover">
-                      <Brain className="h-4 w-4 mr-2" />
-                      Analyze with AI
-                    </Button>
-                  </div>
+                  <AiModelsSelection />
                 </Card>
               </div>
 
@@ -694,26 +289,12 @@ export function LiveTrading() {
           </TabsContent>
 
 
-          {/* Execution Results Component */}
-          <Accordion type="single" collapsible defaultValue="trade-execution" className="w-full">
-            <AccordionItem value="trade-execution" className="border-0">
-              <div className="bg-gradient-to-r from-primary/5 to-transparent px-4 py-3">
-                <AccordionTrigger className="hover:no-underline p-0">
-                  <h3 className="text-lg font-semibold text-foreground">Trade Execution Analysis</h3>
-                </AccordionTrigger>
-              </div>
-              <AccordionContent className="px-4 pb-4 pt-2">
-                <TradeExecution />
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-
-
-
-
-
-
+          
         </Tabs>
+
+        {/* Execution Results Component */}
+        
+        <TradeExecution />
       </div>
     </TradingLayout>
   );

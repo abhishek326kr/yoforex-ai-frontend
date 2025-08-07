@@ -41,9 +41,10 @@ export function TradingSidebar() {
   };
 
   const SidebarContent = () => (
-    <div className="flex h-full flex-col bg-sidebar border-r border-sidebar-border">
+
+    <div className="flex h-full flex-col bg-sidebar border-r border-sidebar-border ">
       {/* Logo Section */}
-      <div className="flex h-16 items-center px-6 border-b border-sidebar-border">
+      <div className="flex h-16 items-center px-6 border-b border-sidebar-border py-2">
         <div className="flex items-center space-x-3">
           <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">
             <BarChart3 className="h-5 w-5 text-white" />
@@ -60,7 +61,7 @@ export function TradingSidebar() {
         {navigation.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
-          
+
           return (
             <Link
               key={item.name}

@@ -126,7 +126,7 @@ const TradingViewWidget = ({
       clearTimeout(timeoutId);
       
       // Clean up widget instance
-      if (window.TradingView && window.TradingView.widget) {
+      if (window.TradingView && typeof window.TradingView.widget === 'function') {
         const widgets = document.querySelectorAll('[id^=tradingview_]');
         widgets.forEach(widget => {
           widget.remove();
