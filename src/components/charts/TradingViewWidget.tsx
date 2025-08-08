@@ -1,6 +1,11 @@
 import { useEffect, useRef, memo, useMemo, useState } from 'react';
 import { formatTradingViewSymbol } from '@/utils/trading';
 
+
+// Re-export the CandleData type for external use
+export type { CandleData } from '@/lib/api/analysis';
+
+
 declare global {
   interface Window {
     TradingView: {
@@ -25,6 +30,7 @@ export interface TradingViewWidgetProps {
   hideVolume?: boolean;
   containerId?: string;
   onTimeframeChange?: (timeframe: string) => void;
+  onCandleDataUpdate?: (data: any[]) => void;
 }
 
 const TradingViewWidget = ({
@@ -37,7 +43,6 @@ const TradingViewWidget = ({
   width = '100%',
   height = '100%',
   style = '1',
-  allowSymbolChange = true,
   saveImage = true,
   showVolume = true,
   hideVolume = false,
@@ -47,7 +52,7 @@ const TradingViewWidget = ({
   const container = useRef<HTMLDivElement>(null);
   const prevSymbolRef = useRef<string>('');
   const prevIntervalRef = useRef<string>('');
-  const [widgetInitialized, setWidgetInitialized] = useState(false);
+  const widgetInstance = useRef<any>(null);
 
   // Format the symbol for TradingView and check if it has limited timeframes
   const { symbol: formattedSymbol, limitedTimeframes } = useMemo(() => formatTradingViewSymbol(symbol), [symbol]);
@@ -142,10 +147,23 @@ const TradingViewWidget = ({
 
   // Handle symbol and interval changes
   useEffect(() => {
-    // Only reinitialize if symbol or safeInterval changes
-    const shouldReinitialize = formattedSymbol !== prevSymbolRef.current || safeInterval !== prevIntervalRef.current;
+    // Store previous values for comparison
+    const prevSymbol = prevSymbolRef.current;
+    const prevInterval = prevIntervalRef.current;
     
-    if (shouldReinitialize) {
+    // Check if we need to update
+    const symbolChanged = formattedSymbol !== prevSymbol;
+    const intervalChanged = safeInterval !== prevInterval;
+    
+    if (symbolChanged || intervalChanged) {
+      console.log('Symbol or interval changed, reinitializing widget', {
+        prevSymbol,
+        newSymbol: formattedSymbol,
+        prevInterval,
+        newInterval: safeInterval
+      });
+      
+      // Update refs with new values
       prevSymbolRef.current = formattedSymbol;
       prevIntervalRef.current = safeInterval;
       
@@ -154,10 +172,28 @@ const TradingViewWidget = ({
         onTimeframeChange(safeInterval);
       }
       
-      // Force re-render to trigger widget reinitialization
-      setWidgetInitialized(prev => !prev);
+      // Force reinitialization of the widget
+      const cleanup = () => {
+        if (widgetInstance.current) {
+          try {
+            widgetInstance.current.remove();
+          } catch (e) {
+            console.error('Error removing widget:', e);
+          }
+          widgetInstance.current = null;
+        }
+      };
+      
+      cleanup();
+      
+      // Add a small delay to ensure cleanup is complete
+      const timer = setTimeout(() => {
+        initializeWidget();
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
-  }, [formattedSymbol, interval, safeInterval, limitedTimeframes, onTimeframeChange]);
+  }, [formattedSymbol, safeInterval, limitedTimeframes, onTimeframeChange, interval]);
 
   const initializeWidget = () => {
     const containerElement = container.current;
@@ -230,6 +266,7 @@ const TradingViewWidget = ({
         'chart_property_page_style',
         'chart_property_page_scales',
       ],
+      datafeed,
     };
 
     try {
@@ -239,10 +276,6 @@ const TradingViewWidget = ({
       setWidgetInitialized(true);
     } catch (error) {
       console.error('Error initializing TradingView widget:', error);
-      const errorElement = document.createElement('div');
-      errorElement.className = 'p-4 text-red-500 text-sm';
-      errorElement.textContent = 'Failed to load chart. Please refresh the page.';
-      containerElement.appendChild(errorElement);
     }
   };
 
