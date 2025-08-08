@@ -17,32 +17,31 @@ function AiModelsSelection() {
 
     const aiModels = {
         free: [
-            // { name: "G"}
-            { name: "Claude Haiku", description: "Fast technical analysis", credits: 1, accuracy: 78 },
-            { name: "Gemini 1.5 Flash", description: "Market sentiment", credits: 1, accuracy: 75 },
-            { name: "Mistral 7B", description: "Pattern recognition", credits: 1, accuracy: 72 },
-            { name: "Llama 3.1 8B", description: "Support/resistance", credits: 1, accuracy: 74 }
+            { name: "YoForex AI", description: "Full detailed analysis", credits: 1, accuracy: 71 },
+            { name: "Claude Haiku", description: "Fast technical analysis", credits: 1, accuracy: 78, status: "coming soon" },
+            { name: "Gemini 1.5 Flash", description: "Market sentiment", credits: 1, accuracy: 75, status: "coming soon" },
+            { name: "Mistral 7B", description: "Pattern recognition", credits: 1, accuracy: 72, status: "coming soon" },
+            { name: "Llama 3.1 8B", description: "Support/resistance", credits: 1, accuracy: 74, status: "coming soon" }
         ],
         pro: [
-            { name: "GPT-4 Omni", description: "Advanced analysis", credits: 150, accuracy: 89 },
-            { name: "Claude 3.5 Sonnet", description: "Deep patterns", credits: 150, accuracy: 91 },
-            { name: "Gemini 1.5 Pro", description: "News integration", credits: 150, accuracy: 87 }
+            { name: "GPT-4 Omni", description: "Advanced analysis", credits: 150, accuracy: 89, status: "coming soon" },
+            { name: "Claude 3.5 Sonnet", description: "Deep patterns", credits: 150, accuracy: 91, status: "coming soon" },
+            { name: "Gemini 1.5 Pro", description: "News integration", credits: 150, accuracy: 87, status: "coming soon" }
         ],
         max: [
-            { name: "GPT-4 Turbo", description: "Institutional analysis", credits: 100, accuracy: 94 },
-            { name: "Claude 3 Opus", description: "Deep reasoning", credits: 100, accuracy: 92 },
-            { name: "Grok AI", description: "Pay-per-use", credits: "Variable", accuracy: 88 }
+            { name: "GPT-4 Turbo", description: "Institutional analysis", credits: 100, accuracy: 94, status: "coming soon" },
+            { name: "Claude 3 Opus", description: "Deep reasoning", credits: 100, accuracy: 92, status: "coming soon" },
+            { name: "Grok AI", description: "Pay-per-use", credits: "Variable", accuracy: 88, status: "coming soon" }
         ]
     };
     return (
         <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20 flex-shrink-0 overflow-hidden">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-foreground">AI Models</h3>
                 <Badge variant="secondary">2,153 credits</Badge>
             </div>
-            
-            <Accordion.Root 
-                type="multiple" 
+
+            <Accordion.Root
+                type="multiple"
                 defaultValue={['free']}
                 className="space-y-2"
             >
@@ -62,15 +61,21 @@ function AiModelsSelection() {
                             {aiModels.free.map((model) => (
                                 <div
                                     key={model.name}
-                                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                                        selectedModels.includes(model.name)
+                                    className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedModels.includes(model.name)
                                             ? 'border-primary bg-gradient-secondary'
                                             : 'border-border/20 hover:border-border/40 bg-gradient-secondary/50'
-                                    }`}
+                                        }`}
                                     onClick={() => toggleModel(model.name)}
                                 >
                                     <div className="flex items-center justify-between mb-1">
-                                        <span className="text-sm font-medium text-foreground">{model.name}</span>
+                                        <div className="flex items-center space-x-2">
+                                            <span className="text-sm font-medium text-foreground">{model.name}</span>
+                                            {model.status && model.name !== 'YoForex AI' && (
+                                                <Badge variant="secondary" className="text-xs">
+                                                    {model.status}
+                                                </Badge>
+                                            )}
+                                        </div>
                                         <Badge variant="outline" className="text-xs">
                                             {model.credits} {model.credits === 1 ? 'credit' : 'credits'}
                                         </Badge>
@@ -99,15 +104,21 @@ function AiModelsSelection() {
                             {aiModels.pro.map((model) => (
                                 <div
                                     key={model.name}
-                                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                                        selectedModels.includes(model.name)
+                                    className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedModels.includes(model.name)
                                             ? 'border-primary bg-gradient-primary/20'
                                             : 'border-primary/30 hover:border-primary/50 bg-gradient-primary/10'
-                                    }`}
+                                        }`}
                                     onClick={() => toggleModel(model.name)}
                                 >
                                     <div className="flex items-center justify-between mb-1">
-                                        <span className="text-sm font-medium text-foreground">{model.name}</span>
+                                        <div className="flex items-center space-x-2">
+                                            <span className="text-sm font-medium text-foreground">{model.name}</span>
+                                            {model.status && (
+                                                <Badge variant="secondary" className="text-xs">
+                                                    {model.status}
+                                                </Badge>
+                                            )}
+                                        </div>
                                         <Badge className="bg-gradient-primary text-xs">
                                             {model.credits} credits
                                         </Badge>
@@ -138,15 +149,21 @@ function AiModelsSelection() {
                             {aiModels.max.map((model) => (
                                 <div
                                     key={model.name}
-                                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                                        selectedModels.includes(model.name)
+                                    className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedModels.includes(model.name)
                                             ? 'border-amber-500 bg-amber-500/10'
                                             : 'border-amber-500/30 hover:border-amber-500/50 bg-amber-500/5'
-                                    }`}
+                                        }`}
                                     onClick={() => toggleModel(model.name)}
                                 >
                                     <div className="flex items-center justify-between mb-1">
-                                        <span className="text-sm font-medium text-foreground">{model.name}</span>
+                                        <div className="flex items-center space-x-2">
+                                            <span className="text-sm font-medium text-foreground">{model.name}</span>
+                                            {model.status && (
+                                                <Badge variant="secondary" className="text-xs">
+                                                    {model.status}
+                                                </Badge>
+                                            )}
+                                        </div>
                                         <Badge className="bg-amber-500 text-white text-xs">
                                             {model.credits} {typeof model.credits === 'number' ? 'credits' : ''}
                                         </Badge>

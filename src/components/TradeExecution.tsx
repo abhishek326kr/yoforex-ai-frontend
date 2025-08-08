@@ -1,244 +1,272 @@
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { FC, useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, Target, Shield, BarChart3 } from "lucide-react";
-import { FC } from 'react';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@radix-ui/react-accordion";
-import { ChevronDown } from "lucide-react"
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/components/ui/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, ArrowUpRight, ArrowDownRight, Loader2 } from "lucide-react";
+import { fetchTradingAnalysis, formatTimeframe, formatPairForApi, CandleData } from "@/lib/api/analysis";
 
-// Add CSS for smooth rotation
-const styles = `
-  @keyframes rotateOpen {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(180deg); }
-  }
-  
-  @keyframes rotateClose {
-    from { transform: rotate(180deg); }
-    to { transform: rotate(0deg); }
-  }
-  
-  .rotate-icon {
-    transition: transform 0.2s ease-in-out;
-  }
-  
-  .rotate-icon[data-state='open'] {
-    animation: rotateOpen 0.2s ease-in-out forwards;
-  }
-  
-  .rotate-icon[data-state='closed'] {
-    animation: rotateClose 0.2s ease-in-out forwards;
-  }
-`;
+interface TechnicalAnalysis {
+  Support_Level: number;
+  Resistance_Level: number;
+  Volume_Confirmation: string;
+  Breakout_Direction: string;
+}
 
-interface AISignal {
-    model: string;
-    action: 'BUY' | 'SELL' | 'HOLD';
+interface AnalysisResponse {
+  pair: string;
+  granularity: string;
+  candles: CandleData[];
+  analysis: {
+    signal: 'BUY' | 'SELL' | 'HOLD';
     confidence: number;
+    entry: number;
+    stop_loss: number;
+    take_profit: number;
+    risk_reward_ratio: string;
+    timeframe: string;
+    technical_analysis: TechnicalAnalysis;
+    recommendation: string;
+  };
+}
+interface TradeExecutionProps {
+  candleData: CandleData[];
+  selectedTimeframe: string;
+  selectedStrategy: string;
+  selectedPair: string;
 }
 
-interface TradeSignal {
-    pair: string;
-    action: 'BUY' | 'SELL';
-    entryPrice: string;
-    confidence: number;
-    positionSize: string;
-    timeSensitivity: string;
-}
+const TradeExecution: FC<TradeExecutionProps> = ({selectedTimeframe, selectedStrategy, selectedPair }) => {
+  const { toast } = useToast();
+  const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-interface RiskManagement {
-    stopLoss: string;
-    takeProfit1: string;
-    takeProfit2: string;
-    riskReward: string;
-    maxLoss: string;
-    marginRequired: string;
-}
+  const analyzeMarket = async () => {
 
-interface AIAnalysis {
-    signals: AISignal[];
-    keyFactors: string[];
-    marketTiming: string;
-}
+    setIsLoading(true);
+    setError(null);
 
-const TradeSignalCard: FC<{ signal: TradeSignal }> = ({ signal }) => (
-    <div className="space-y-1">
-        <h4 className="text-sm font-medium text-muted-foreground">Signal & Entry</h4>
-        <div className="p-2 rounded-lg bg-gradient-profit/20 border border-accent/30">
-            <div className="flex items-center justify-center mb-2">
-                <Badge className="bg-gradient-profit text-lg px-4 py-2">
-                    {signal.action} {signal.pair}
-                </Badge>
-            </div>
-            <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                    <span className="text-foreground/80">Confidence:</span>
-                    <div className="flex items-center space-x-2">
-                        <div className="h-2 w-16 bg-muted rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-accent rounded-full"
-                                style={{ width: `${signal.confidence}%` }}
-                            />
-                        </div>
-                        <span className="font-medium text-foreground">{signal.confidence}%</span>
-                    </div>
-                </div>
-                <div className="flex justify-between">
-                    <span className="text-foreground/80">Entry Price:</span>
-                    <span className="font-medium text-foreground">{signal.entryPrice}</span>
-                </div>
-                <div className="flex justify-between">
-                    <span className="text-foreground/80">Position Size:</span>
-                    <span className="font-medium text-foreground">{signal.positionSize}</span>
-                </div>
-                <div className="flex justify-between">
-                    <span className="text-foreground/80">Time Sensitivity:</span>
-                    <Badge variant="secondary" className="text-xs">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {signal.timeSensitivity}
-                    </Badge>
-                </div>
-            </div>
-        </div>
-    </div>
-);
+    try {
+      // Calculate count based on the selected timeframe
+      const count = calculateCandleCount(selectedTimeframe);
+      
+      const analysisData = await fetchTradingAnalysis({
+        pair: formatPairForApi(selectedPair),
+        timeframe: formatTimeframe(selectedTimeframe),
+        strategy: selectedStrategy as any, // We know this is a valid strategy
+        count,
+        
+      });
 
-const RiskManagementCard: FC<{ risk: RiskManagement }> = ({ risk }) => (
-    <div className="space-y-4">
-        <h4 className="text-sm font-medium text-muted-foreground">Risk Management</h4>
-        <div className="p-4 rounded-lg bg-gradient-loss/20 border border-destructive/30">
-            <div className="space-y-3 text-sm">
-                {Object.entries(risk).map(([key, value]) => (
-                    <div key={key} className="flex justify-between">
-                        <span className="text-foreground/80">
-                            {key.split(/(?=[A-Z])/).map(word =>
-                                word.charAt(0).toUpperCase() + word.slice(1)
-                            ).join(' ')}:
-                        </span>
-                        <span className={`font-medium ${key.includes('Loss') ? 'text-trading-loss' :
-                            key.includes('Profit') ? 'text-trading-profit' : 'text-foreground'
-                            }`}>
-                            {value}
-                        </span>
-                    </div>
-                ))}
-            </div>
-        </div>
-    </div>
-);
+      setAnalysis(analysisData);
+      toast({
+        title: "Analysis Complete",
+        description: "Market analysis has been successfully generated.",
+      });
+    } catch (err) {
+      console.error("Error analyzing market:", err);
+      setError("Failed to analyze market. Please try again.");
+      toast({
+        title: "Analysis Failed",
+        description: "There was an error analyzing the market. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-const AIAnalysisCard: FC<{ analysis: AIAnalysis }> = ({ analysis }) => (
-    <div className="space-y-4">
-        <h4 className="text-sm font-medium text-muted-foreground">AI Consensus Reasoning</h4>
-        <div className="p-4 rounded-lg bg-gradient-primary/20 border border-primary/30">
-            <div className="space-y-3">
-                <div className="text-sm">
-                    <span className="text-foreground/80">Multi-AI Analysis:</span>
-                    <div className="mt-1 space-y-1">
-                        {analysis.signals.map((signal, index) => (
-                            <div key={index} className="flex justify-between">
-                                <span className="text-xs text-muted-foreground">{signal.model}</span>
-                                <Badge className="bg-gradient-profit text-xs">
-                                    {signal.action} {signal.confidence}%
-                                </Badge>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="text-sm">
-                    <span className="text-foreground/80">Key Factors:</span>
-                    <ul className="mt-1 space-y-1 text-xs text-foreground/70">
-                        {analysis.keyFactors.map((factor, index) => (
-                            <li key={index}>• {factor}</li>
-                        ))}
-                    </ul>
-                </div>
-
-                <div className="text-sm">
-                    <span className="text-foreground/80">Market Timing:</span>
-                    <p className="text-xs text-foreground/70 mt-1">
-                        {analysis.marketTiming}
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-);
-
-const ActionButtons: FC = () => (
-    <div className="flex items-center justify-center space-x-4 mt-6">
-        <Button size="lg" className="bg-gradient-profit hover:bg-accent/90 px-8">
-            <Target className="h-5 w-5 mr-2" />
-            Execute Trade Now
-        </Button>
-        <Button size="lg" variant="outline" className="px-8">
-            <Shield className="h-5 w-5 mr-2" />
-            Set Alert Only
-        </Button>
-        <Button size="lg" variant="outline" className="px-8">
-            <BarChart3 className="h-5 w-5 mr-2" />
-            Modify Parameters
-        </Button>
-    </div>
-);
-
-const TradeExecution: FC = () => {
-    // Mock data - in a real app, this would come from props or a state management solution
-    const tradeSignal: TradeSignal = {
-        pair: 'EUR/USD',
-        action: 'BUY',
-        entryPrice: '1.0847',
-        confidence: 89,
-        positionSize: '$2,000 (2%)',
-        timeSensitivity: '5 minutes'
+  const calculateCandleCount = (timeframe: string): number => {
+    // Default to 100 candles for unknown timeframes
+    const defaultCount = 100;
+    
+    const counts: Record<string, number> = {
+      'M1': 240,    // 4 hours
+      'M5': 288,    // 24 hours
+      'M15': 192,   // 2 days
+      'M30': 336,   // 1 week
+      'H1': 168,    // 1 week
+      'H4': 168,    // 4 weeks
+      'D': 90,      // 3 months
+      'W': 52,      // 1 year
+      'M': 60       // 5 years
     };
 
-    const riskManagement: RiskManagement = {
-        stopLoss: '1.0820 (-27 pips)',
-        takeProfit1: '1.0875 (+28 pips)',
-        takeProfit2: '1.0895 (+48 pips)',
-        riskReward: '1:1.04',
-        maxLoss: '$54.00 (2.7%)',
-        marginRequired: '$66.95'
-    };
+    return counts[timeframe] || defaultCount;
+  };
 
-    const aiAnalysis: AIAnalysis = {
-        signals: [
-            { model: 'GPT 4.1', action: 'BUY', confidence: 87 },
-            { model: 'Claude 4 Sonnet', action: 'BUY', confidence: 91 }
-        ],
-        keyFactors: [
-            'Breakout above 1.0840 resistance',
-            'RSI bullish divergence detected',
-            'Volume confirmation present',
-            'USD weakness in session'
-        ],
-        marketTiming: 'European session opening with high volatility expected. News calendar clear for next 2 hours.'
-    };
+  const formatPrice = (price: number): string => {
+    return price.toFixed(5);
+  };
 
+  const getSignalVariant = (signal: 'BUY' | 'SELL' | 'HOLD') => {
+    switch (signal) {
+      case 'BUY': return 'bg-green-500/10 text-green-500 border-green-500/30';
+      case 'SELL': return 'bg-red-500/10 text-red-500 border-red-500/30';
+      default: return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30';
+    }
+  };
+
+  const getSignalIcon = (signal: 'BUY' | 'SELL' | 'HOLD') => {
+    switch (signal) {
+      case 'BUY': return <ArrowUpRight className="h-4 w-4" />;
+      case 'SELL': return <ArrowDownRight className="h-4 w-4" />;
+      default: return null;
+    }
+  };
+
+  if (!analysis) {
     return (
-        <Card className="p-6 bg-gradient-glass backdrop-blur-sm border-border/20">
-            <Accordion type="single" collapsible>
-                <AccordionItem value="item-1">
-                    <AccordionTrigger className="hover:no-underline p-0 group bg-gradient-primary/20 flex items-center justify-between w-full px-4 py-2">
-
-                        <h3 className="text-lg font-semibold text-white">Trade Execution Analysis</h3>
-                        <ChevronDown className="rotate-icon h-4 w-4 shrink-0" />
-                    </AccordionTrigger>
-                    <AccordionContent>
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <TradeSignalCard signal={tradeSignal} />
-                            <RiskManagementCard risk={riskManagement} />
-                            <AIAnalysisCard analysis={aiAnalysis} />
-                        </div>
-
-                        <ActionButtons />
-                    </AccordionContent>
-                </AccordionItem>
-            </Accordion>
-        </Card>
+      <Card className="h-full flex flex-col bg-gradient-glass backdrop-blur-sm border-border/20">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Trade Analysis</CardTitle>
+          <CardDescription>
+            {error ? (
+              <Alert variant="destructive" className="text-left">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : (
+              "Run analysis to get trade recommendations"
+            )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col items-center justify-center">
+          <Button 
+            onClick={analyzeMarket} 
+            disabled={isLoading || !candleData.length || !selectedTimeframe || !selectedStrategy}
+            className="w-full max-w-xs"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              'Analyze Market'
+            )}
+          </Button>
+          {(!candleData.length || !selectedTimeframe || !selectedStrategy) && (
+            <p className="mt-2 text-sm text-muted-foreground text-center">
+              {!candleData.length && "• No chart data available"}
+              {!selectedTimeframe && "• No timeframe selected"}
+              {!selectedStrategy && "• No strategy selected"}
+            </p>
+          )}
+        </CardContent>
+      </Card>
     );
+  }
+
+  return (
+    <Card className="h-full flex flex-col bg-gradient-glass backdrop-blur-sm border-border/20">
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              {analysis.pair.replace('_', '/')}
+              <Badge variant="outline" className={getSignalVariant(analysis.analysis.signal)}>
+                {getSignalIcon(analysis.analysis.signal)}
+                <span className="ml-1">{analysis.analysis.signal}</span>
+              </Badge>
+            </CardTitle>
+            <CardDescription className="text-sm">
+              {analysis.analysis.timeframe} • {new Date().toLocaleString()}
+            </CardDescription>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={analyzeMarket}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            Refresh
+          </Button>
+        </div>
+      </CardHeader>
+
+      <CardContent className="flex-1 space-y-4">
+        {/* Signal Confidence */}
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Confidence</span>
+            <span className="font-medium">{analysis.analysis.confidence}%</span>
+          </div>
+          <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
+            <div 
+              className={`h-full ${analysis.analysis.signal === 'BUY' ? 'bg-green-500' : 'bg-red-500'}`}
+              style={{ width: `${analysis.analysis.confidence}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Key Levels */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Entry</p>
+            <p className="font-mono">{formatPrice(analysis.analysis.entry)}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Stop Loss</p>
+            <p className="font-mono text-red-500">{formatPrice(analysis.analysis.stop_loss)}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Take Profit</p>
+            <p className="font-mono text-green-500">{formatPrice(analysis.analysis.take_profit)}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Risk/Reward</p>
+            <p className="font-mono">{analysis.analysis.risk_reward_ratio}</p>
+          </div>
+        </div>
+
+        {/* Technical Analysis */}
+        <div className="space-y-3">
+          <h4 className="text-sm font-medium">Technical Indicators</h4>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="border rounded-lg p-3 space-y-1">
+              <p className="text-muted-foreground text-xs">Support</p>
+              <p className="font-mono">{formatPrice(analysis.analysis.technical_analysis.Support_Level)}</p>
+            </div>
+            <div className="border rounded-lg p-3 space-y-1">
+              <p className="text-muted-foreground text-xs">Resistance</p>
+              <p className="font-mono">{formatPrice(analysis.analysis.technical_analysis.Resistance_Level)}</p>
+            </div>
+            <div className="border rounded-lg p-3 space-y-1">
+              <p className="text-muted-foreground text-xs">Volume</p>
+              <p>{analysis.analysis.technical_analysis.Volume_Confirmation}</p>
+            </div>
+            <div className="border rounded-lg p-3 space-y-1">
+              <p className="text-muted-foreground text-xs">Breakout</p>
+              <p>{analysis.analysis.technical_analysis.Breakout_Direction}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Recommendation */}
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium">Recommendation</h4>
+          <p className="text-sm text-muted-foreground">{analysis.analysis.recommendation}</p>
+        </div>
+      </CardContent>
+
+      <CardFooter className="flex gap-3 pt-4 border-t">
+        <Button className="flex-1" size="lg">
+          Place {analysis.analysis.signal} Order
+        </Button>
+        <Button variant="outline" className="flex-1" size="lg">
+          Copy Settings
+        </Button>
+      </CardFooter>
+    </Card>
+  );
 };
 
 export default TradeExecution;

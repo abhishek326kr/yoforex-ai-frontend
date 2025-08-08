@@ -30,46 +30,11 @@ const CRYPTO_PAIRS: Record<string, string> = {
 const STOCK_INDICES = [
   // Global Indices
   'S&P 500', 'DOW', 'NASDAQ', 'FTSE 100', 'DAX',
-  'NIKKEI 225', 'HANG SENG', 'ASX 200', 'CAC 40', 
-  
-  // Indian Indices
-  'SENSEX', 'NIFTY 50', 'NIFTY BANK', 'NIFTY NEXT 50',
-  'NIFTY IT', 'NIFTY AUTO', 'NIFTY PHARMA', 'NIFTY FIN SERVICE',
-  'NIFTY FMCG', 'NIFTY METAL', 'NIFTY REALTY', 'NIFTY PSU BANK',
-  'NIFTY MEDIA', 'NIFTY PVT BANK', 'NIFTY CONSUMER DURABLES'
+  'NIKKEI 225', 'HANG SENG', 'ASX 200', 'CAC 40'
 ];
 
 // Popular Indian Stocks (NIFTY 50 constituents and other large caps)
-const INDIAN_STOCKS: Record<string, string> = {
-  // NIFTY 50 Stocks
-  'RELIANCE': 'NSE:RELIANCE',
-  'TCS': 'NSE:TCS',
-  'HDFC BANK': 'NSE:HDFCBANK',
-  'ICICI BANK': 'NSE:ICICIBANK',
-  'HUL': 'NSE:HINDUNILVR',
-  'INFOSYS': 'NSE:INFY',
-  'ITC': 'NSE:ITC',
-  'BHARTI AIRTEL': 'NSE:BHARTIARTL',
-  'SBI': 'NSE:SBIN',
-  'LT': 'NSE:LT',
-  'HCL TECH': 'NSE:HCLTECH',
-  'BAJAJ FINANCE': 'NSE:BAJFINANCE',
-  'ASIAN PAINTS': 'NSE:ASIANPAINT',
-  'HDFC LIFE': 'NSE:HDFCLIFE',
-  'KOTAK MAHINDRA': 'NSE:KOTAKBANK',
-  
-  // Other popular Indian stocks
-  'TATA MOTORS': 'NSE:TATAMOTORS',
-  'TATA STEEL': 'NSE:TATASTEEL',
-  'WIPRO': 'NSE:WIPRO',
-  'ADANI PORTS': 'NSE:ADANIPORTS',
-  'NTPC': 'NSE:NTPC',
-  'POWERGRID': 'NSE:POWERGRID',
-  'ULTRATECH CEMENT': 'NSE:ULTRACEMCO',
-  'TITAN': 'NSE:TITAN',
-  'SUN PHARMA': 'NSE:SUNPHARMA',
-  'NESTLE': 'NSE:NESTLEIND'
-};
+
 
 // Commodities with their specific TradingView symbols
 const COMMODITY_SYMBOLS: Record<string, string> = {
@@ -83,14 +48,6 @@ const COMMODITY_SYMBOLS: Record<string, string> = {
   'XPT/USD': 'TVC:PLATINUM',
   'XPD/USD': 'TVC:PALLADIUM'
 };
-
-// List of indices that only support D, W, M timeframes
-// const INDICES_WITH_EXTENDED_TIMEFRAMES = [
-//   'SENSEX',
-//   'NIFTY 50',
-//   'NIFTY BANK',
-//   'NIFTY NEXT 50'
-// ];
 
 /**
  * Formats a trading pair for use with TradingView
@@ -148,9 +105,7 @@ export const formatTradingViewSymbol = (pair: string): FormattedSymbol => {
   }
   
   // Check if it's an Indian stock
-  if (INDIAN_STOCKS[pair]) {
-    return { symbol: INDIAN_STOCKS[pair], limitedTimeframes: false };
-  }
+ 
   
   // Default: assume it's a forex pair and format accordingly
   if (cleanPair.includes('/')) {
@@ -168,6 +123,6 @@ export const getTradingPairs = () => ({
   forex: MAJOR_FOREX_PAIRS.filter(pair => !pair.startsWith('X') || !pair.endsWith('/USD')),
   crypto: Object.keys(CRYPTO_PAIRS),
   indices: STOCK_INDICES,
-  indianStocks: Object.keys(INDIAN_STOCKS).sort(),
+  
   commodities: Object.keys(COMMODITY_SYMBOLS)
 });

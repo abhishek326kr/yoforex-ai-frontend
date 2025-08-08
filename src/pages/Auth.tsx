@@ -179,11 +179,6 @@ export function Auth() {
     try {
       const response = await axios.post("/auth/login/request-otp", {
         phone: formData.phone,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
       });
 
       // API returns 200 for successful OTP request
@@ -229,11 +224,6 @@ export function Auth() {
       const response = await axios.post("/auth/login/verify-otp", {
         phone: formData.phone,
         otp: formData.otp,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
       });
 
       // API returns 200 for successful login
@@ -283,11 +273,6 @@ export function Auth() {
       const response = await axios.post("/auth/login/email", {
         email: formData.email,
         password: formData.password,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
       });
 
       // API returns 200 for successful login

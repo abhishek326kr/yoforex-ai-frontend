@@ -1,4 +1,4 @@
-import { useEffect, useRef, memo, useMemo, useState } from 'react';
+import { useEffect, useRef, memo, useMemo } from 'react';
 import { formatTradingViewSymbol } from '@/utils/trading';
 
 
@@ -202,12 +202,12 @@ const TradingViewWidget = ({
     // Clear any existing widgets
     const existingWidgets = containerElement.querySelectorAll('[id^=tradingview_]');
     existingWidgets.forEach(widget => widget.remove());
-
+    
     // Clear container
     while (containerElement.firstChild) {
       containerElement.removeChild(containerElement.firstChild);
     }
-
+    
     // Create new container for the widget
     const widgetContainer = document.createElement('div');
     widgetContainer.id = containerId;
@@ -266,14 +266,13 @@ const TradingViewWidget = ({
         'chart_property_page_style',
         'chart_property_page_scales',
       ],
-      datafeed,
+      
     };
 
     try {
       // Using type assertion to handle the constructor call
       const TradingViewWidget = window.TradingView.widget as unknown as { new (options: any): any };
       new TradingViewWidget(widgetOptions);
-      setWidgetInitialized(true);
     } catch (error) {
       console.error('Error initializing TradingView widget:', error);
     }
@@ -290,11 +289,11 @@ const TradingViewWidget = ({
       }
     };
   }, []);
-
+  
   return (
-    <div
-      id={containerId}
-      ref={container}
+    <div 
+      id={containerId} 
+      ref={container} 
       style={{
         width,
         height,

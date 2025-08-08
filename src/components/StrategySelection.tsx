@@ -1,12 +1,20 @@
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
-import { useState } from "react";
+// import { useState } from "react";
 import { StrategyItem } from "./StrategyItem";
 
-export default function StrategySelection() {
+
+interface StrategySelectionProps {
+  selectedStrategy: string;
+  onStrategySelect: (strategy: string) => void;
+}
+
+export default function StrategySelection({ selectedStrategy, onStrategySelect }: StrategySelectionProps) {
+
     
-    const [selectedStrategies, setSelectedStrategies] = useState<string[]>([]);
+
+    
     const strategies = [
         { name: "Breakout Strategy", credits: 2, winRate: 68, risk: "Medium", tier: "free" },
         { name: "Fibonacci Retracement", credits: 2, winRate: 72, risk: "Low", tier: "free" },
@@ -14,25 +22,22 @@ export default function StrategySelection() {
         { name: "ICT Concept", credits: 5, winRate: 81, risk: "Medium", tier: "pro" },
         { name: "SMC Strategy", credits: 5, winRate: 79, risk: "Medium", tier: "pro" },
         { name: "Advanced SMC", credits: 8, winRate: 84, risk: "High", tier: "max" },
-        { name: "Custom Strategy Builder", credits: 10, winRate: 86, risk: "Variable", tier: "max" }
+        { name: "Volatility Breakout", credits: 10, winRate: 86, risk: "Variable", tier: "max" },
+        { name: "Carry Trade", credits: 10, winRate: 86, risk: "Variable", tier: "max" },
+        { name: "Options Straddle", credits: 10, winRate: 86, risk: "Variable", tier: "max" },
+        { name: "Momentum", credits: 10, winRate: 86, risk: "Variable", tier: "max" },
       ];
 
-    const toggleStrategy = (strategyName: string) => {
-        if (selectedStrategies.length < 3 || selectedStrategies.includes(strategyName)) {
-          setSelectedStrategies(prev =>
-            prev.includes(strategyName)
-              ? prev.filter(s => s !== strategyName)
-              : [...prev, strategyName]
-          );
-        }
-      };
+    const handleStrategyClick = (strategyName: string) => {
+        onStrategySelect(strategyName === selectedStrategy ? '' : strategyName);
+    };
       
     
     return (
         <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20 flex-shrink-0 overflow-hidden">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-foreground">Strategies</h3>
-                <Badge variant="outline">{selectedStrategies.length}/3</Badge>
+                <h3>Select any one of them</h3>
+                <Badge variant="outline">{selectedStrategy ? 1 : 0}/1</Badge>
             </div>
             <Accordion type="multiple" defaultValue={['free']} className="space-y-2">
                 {/* Free Tier Strategies */}
@@ -52,10 +57,13 @@ export default function StrategySelection() {
                                 .map((strategy) => (
                                     <StrategyItem
                                         key={strategy.name}
-                                        strategy={strategy}
-                                        isSelected={selectedStrategies.includes(strategy.name)}
-                                        isDisabled={selectedStrategies.length >= 3 && !selectedStrategies.includes(strategy.name)}
-                                        onSelect={toggleStrategy}
+                                        name={strategy.name}
+                                        credits={strategy.credits}
+                                        winRate={strategy.winRate}
+                                        risk={strategy.risk}
+                                        tier={strategy.tier}
+                                        isSelected={selectedStrategy === strategy.name}
+                                        onClick={() => handleStrategyClick(strategy.name)}
                                     />
                                 ))}
                         </div>
@@ -79,10 +87,13 @@ export default function StrategySelection() {
                                 .map((strategy) => (
                                     <StrategyItem
                                         key={strategy.name}
-                                        strategy={strategy}
-                                        isSelected={selectedStrategies.includes(strategy.name)}
-                                        isDisabled={selectedStrategies.length >= 3 && !selectedStrategies.includes(strategy.name)}
-                                        onSelect={toggleStrategy}
+                                        name={strategy.name}
+                                        credits={strategy.credits}
+                                        winRate={strategy.winRate}
+                                        risk={strategy.risk}
+                                        tier={strategy.tier}
+                                        isSelected={selectedStrategy === strategy.name}
+                                        onClick={() => handleStrategyClick(strategy.name)}
                                     />
                                 ))}
                         </div>
@@ -107,9 +118,9 @@ export default function StrategySelection() {
                                     <StrategyItem
                                         key={strategy.name}
                                         strategy={strategy}
-                                        isSelected={selectedStrategies.includes(strategy.name)}
-                                        isDisabled={selectedStrategies.length >= 3 && !selectedStrategies.includes(strategy.name)}
-                                        onSelect={toggleStrategy}
+                                        isSelected={selectedStrategy === strategy.name}
+                                        isDisabled={false}
+                                        onSelect={onStrategySelect}
                                     />
                                 ))}
                         </div>

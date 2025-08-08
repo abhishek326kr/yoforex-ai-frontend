@@ -13,7 +13,6 @@ import { Billing } from "@/pages/Billing";
 import { Auth } from "@/pages/Auth";
 // import { Landing } from "@/pages/Landing";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { PublicRoute } from "@/components/PublicRoute";
 import { AuthProvider } from "@/hooks/useAuth";
 import NotFound from "@/pages/NotFound";
 
@@ -27,46 +26,32 @@ const App = () => (
       <Router>
         <AuthProvider>
           <Switch>
+            {/* Public routes */}
+            <Route path="/auth" component={Auth} />
+
+            {/* Protected routes */}
+            <Route path="/dashboard" component={Dashboard} />
+            <Route path="/trading" component={LiveTrading} />
+
+            <Route path="/history" component={History} />
+
+            <Route path="/active"   component={ActiveTrades} />
+
+            <Route path="/settings" component={Settings} />
+
+            <Route path="/pricing" component={Pricing} />
+            <Route path="/billing" component={Billing} />
+            
+
+            <Route path="/pricing" component={Pricing} />
+             
+
+            <Route path="/billing" component={Billing} />
+
+            {/* Catch-all route - redirects based on auth status */}
             <Route path="/">
-              <PublicRoute>
-                <Auth />
-              </PublicRoute>
-            </Route>
-            <Route path="/dashboard">
               <ProtectedRoute>
                 <Dashboard />
-              </ProtectedRoute>
-            </Route>
-             
-            
-            <Route path="/trading">
-              <ProtectedRoute>
-                <LiveTrading />
-              </ProtectedRoute>
-            </Route>
-            <Route path="/history">
-              <ProtectedRoute>
-                <History />
-              </ProtectedRoute>
-            </Route>
-            <Route path="/active">
-              <ProtectedRoute>
-                <ActiveTrades />
-              </ProtectedRoute>
-            </Route>
-            <Route path="/settings">
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            </Route>
-            <Route path="/pricing">
-              <ProtectedRoute>
-                <Pricing />
-              </ProtectedRoute>
-            </Route>
-            <Route path="/billing">
-              <ProtectedRoute>
-                <Billing />
               </ProtectedRoute>
             </Route>
             <Route component={NotFound} />

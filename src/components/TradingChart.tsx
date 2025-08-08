@@ -16,14 +16,11 @@ import TradingViewWidget from "./charts/TradingViewWidget";
 interface TradingChartProps {
     selectedPair: string;
     selectedTimeframe: string;
+    onCandleDataUpdate?: (data: any[]) => void;
 }
 
-export function TradingChart({ 
-    selectedPair, 
-    selectedTimeframe 
-}: TradingChartProps) {
+export function TradingChart({ selectedPair, selectedTimeframe }: TradingChartProps) {
     const [isChartExpanded, setIsChartExpanded] = useState(false);
-    
     
     return (
         <div className={`transition-all duration-300 ${isChartExpanded ? 'fixed inset-0 z-50 m-4' : 'col-span-12 lg:col-span-6 flex flex-col'}`}>
@@ -79,23 +76,38 @@ export function TradingChart({
                 </div>
 
                 {/* Chart Container */}
-                <div className="flex-1 relative">
-                    {/* Chart Loading Overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10 transition-opacity duration-300 opacity-0 hover:opacity-100">
-                        <Button variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm" onClick={() => { isChartExpanded ? setIsChartExpanded(false) : setIsChartExpanded(true) }}>
-                            <Maximize2 className="h-4 w-4 mr-2" />
-                            {isChartExpanded ? "Minimize Chart" : "Expand Chart"}
+                <div className="flex-1 relative group">
+                    {/* Expand Button - Only shows when hovering over the top-right corner */}
+                    <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="bg-background/80 backdrop-blur-sm shadow-md" 
+                            onClick={() => setIsChartExpanded(!isChartExpanded)}
+                        >
+                            {isChartExpanded ? (
+                                <>
+                                    <Minimize2 className="h-4 w-4 mr-2" />
+                                    Minimize Chart
+                                </>
+                            ) : (
+                                <>
+                                    <Maximize2 className="h-4 w-4 mr-2" />
+                                    Expand Chart
+                                </>
+                            )}
                         </Button>
                     </div>
 
                     {/* TradingView Chart */}
                     <div className="h-full w-full">
-                        <TradingViewWidget
+                        <TradingViewWidget 
                             symbol={selectedPair}
-                            interval={selectedTimeframe.replace('M', '')}
+                            interval={selectedTimeframe}
                             theme="dark"
-                            autosize={true}
-                            hideSideToolbar={false}
+                            style="1"
+                            
+                            
                         />
                     </div>
                 </div>

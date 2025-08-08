@@ -4,15 +4,104 @@ import {
   Target,
   Upload,
   Zap,
-  Mic
+  Mic,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
+
+// Type definitions for Technical Analysis Card props
+interface TechnicalAnalysisCardProps {
+  analysis: {
+    loading: boolean;
+    error: string | null;
+    data: any | null;
+    hasRun: boolean;
+  };
+  onRunAnalysis: () => void;
+  disabled?: boolean;
+}
+
+// Import the AnalysisDisplay component
+import { AnalysisDisplay } from '@/components/AnalysisDisplay';
+
+// Technical Analysis Card Component
+const TechnicalAnalysisCard = ({ analysis, onRunAnalysis, disabled = false }: TechnicalAnalysisCardProps) => (
+  <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20 mt-4">
+    <h3 className="text-lg font-semibold text-foreground mb-3">Market Analysis</h3>
+    {analysis.loading ? (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin mr-3 text-primary" />
+        <span className="text-lg">Analyzing market data...</span>
+      </div>
+    ) : analysis.error ? (
+      <div className="flex flex-col items-center p-6 text-center">
+        <div className="flex items-center gap-2 text-destructive p-3 rounded-md bg-destructive/10 text-sm mb-4">
+          <AlertCircle className="h-5 w-5" />
+          <span>{analysis.error}</span>
+        </div>
+        <Button 
+          onClick={onRunAnalysis}
+          className="mt-2 bg-gradient-primary hover:bg-primary-hover"
+          disabled={disabled}
+        >
+          <Zap className="h-4 w-4 mr-2" />
+          Try Again
+        </Button>
+      </div>
+    ) : !analysis.hasRun ? (
+      <div className="flex flex-col items-center p-6 text-center">
+        <div className="bg-muted/20 p-4 rounded-full mb-4">
+          <Zap className="h-8 w-8 text-primary" />
+        </div>
+        <h4 className="text-lg font-medium mb-2">Run Market Analysis</h4>
+        <p className="text-muted-foreground text-sm mb-6 max-w-md">
+          Get detailed technical analysis, trade signals, and risk assessment for the selected currency pair.
+        </p>
+        <Button 
+          onClick={onRunAnalysis}
+          className="bg-gradient-primary hover:bg-primary-hover px-6 py-5 text-base"
+          disabled={disabled}
+        >
+          <Zap className="h-5 w-5 mr-2" />
+          Run AI Analysis
+        </Button>
+      </div>
+    ) : analysis.data?.analysis ? (
+      <AnalysisDisplay analysis={analysis.data.analysis} />
+    ) : (
+      <div className="flex flex-col items-center p-6 text-center">
+        <div className="bg-muted/20 p-4 rounded-full mb-4">
+          <AlertCircle className="h-8 w-8 text-yellow-500" />
+        </div>
+        <h4 className="text-lg font-medium mb-2">No Analysis Data</h4>
+        <p className="text-muted-foreground text-sm mb-6">
+          We couldn't retrieve the analysis data. Please try running the analysis again.
+        </p>
+        <Button 
+          onClick={onRunAnalysis}
+          className="mt-2 bg-gradient-primary hover:bg-primary-hover"
+          disabled={disabled}
+        >
+          <Zap className="h-4 w-4 mr-2" />
+          Retry Analysis
+        </Button>
+      </div>
+    )}
+  </Card>
+);
+import { fetchTradingAnalysis, type Timeframe, type TradingStrategy } from '@/lib/api/analysis';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import TradeExecution from '@/components/TradeExecution';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+
 import MarketSelection from '@/components/MarketSelection';
 import TradingViewWidget from '@/components/charts/TradingViewWidget';
 import { TradingLayout } from '@/components/layout/TradingLayout';
@@ -29,9 +118,60 @@ import ActivePositions from '@/components/ActivePositions';
 export function LiveTrading() {
   const [selectedPair, setSelectedPair] = useState("EUR/USD");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1H");
-  const [selectedStrategies, setSelectedStrategies] = useState<string[]>([]);
+  const [selectedStrategy, setSelectedStrategy] = useState<string>("");
+  const [candleData, setCandleData] = useState<any[]>([]);
   const [analysisText, setAnalysisText] = useState("");
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [analysis, setAnalysis] = useState<{
+    loading: boolean;
+    error: string | null;
+    data: any | null;
+    hasRun: boolean; // Track if analysis has been run
+  }>({ loading: false, error: null, data: null, hasRun: false });
+  
+  // Handle strategy selection from StrategySelection component
+  const handleStrategySelect = (strategy: string) => {
+    setSelectedStrategy(strategy);
+  };
+  
+  // Handle candle data updates from TradingChart
+  const handleCandleDataUpdate = (data: any[]) => {
+    setCandleData(data);
+  };
+
+  // Handle AI Analysis button click
+  const handleAnalysis = async () => {
+    if (!selectedPair || !selectedTimeframe || !selectedStrategy) {
+      setAnalysis({
+        loading: false,
+        error: 'Please select a pair, timeframe, and strategy first',
+        data: null,
+        hasRun: true
+      });
+      return;
+    }
+    
+    try {
+      setAnalysis({ loading: true, error: null, data: null, hasRun: true });
+      
+      const result = await fetchTradingAnalysis({
+        pair: selectedPair,
+        timeframe: selectedTimeframe as Timeframe,
+        strategy: selectedStrategy as TradingStrategy,
+        count: 100
+      });
+      
+      setAnalysis({ loading: false, error: null, data: result, hasRun: true });
+    } catch (error) {
+      console.error('Error fetching analysis:', error);
+      setAnalysis({ 
+        loading: false, 
+        error: 'Failed to fetch analysis. Please try again.', 
+        data: null,
+        hasRun: true
+      });
+    }
+  };
 
   return (
     <TradingLayout>
@@ -78,27 +218,56 @@ export function LiveTrading() {
                   onTimeframeSelect={setSelectedTimeframe}
                 />
 
-                {/* AI Models */}
-                <AiModelsSelection />
+                {/* AI Models Accordion */}
+                {/* <Accordion type="single" collapsible className="border rounded-lg overflow-hidden">
+                  <AccordionItem value="ai-models" className="border-b">
+                    <AccordionTrigger className="px-4 py-3 text-left font-medium flex justify-between items-center w-full hover:bg-secondary/30 transition-colors">
+                      <span>AI Models</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4">
+                      <AiModelsSelection />
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion> */}
 
-                {/* Strategy Selection */}
-                <StrategySelection/>
+                {/* Strategy Selection Accordion */}
+                <Accordion type="single" collapsible className="border rounded-lg overflow-hidden">
+                  <AccordionItem value="strategy" className="border-b">
+                    <AccordionTrigger className="px-4 py-3 text-left font-medium flex justify-between items-center w-full hover:bg-secondary/30 transition-colors">
+                      <span>Strategy Selection</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4">
+                      <StrategySelection 
+                        selectedStrategy={selectedStrategy}
+                        onStrategySelect={handleStrategySelect}
+                      />
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </div>
 
               {/* Center Panel - Trading Chart */}
-              <TradingChart 
-                selectedPair={selectedPair}
-                selectedTimeframe={selectedTimeframe}
-              />
-
-              {/* Right Panel - Live Signals */}
-              <div className="col-span-12 lg:col-span-3 flex flex-col space-y-4">
-                <LiveSignals />
-
-                {/* Active Positions */}
-                <ActivePositions/>
+              <div className="col-span-12 lg:col-span-6">
+                <TradingChart 
+                  selectedPair={selectedPair}
+                  selectedTimeframe={selectedTimeframe}
+                  onCandleDataUpdate={handleCandleDataUpdate}
+                />
+                
+                {/* Trade Execution Card - Spanning full width under chart */}
+                
               </div>
 
+              {/* Right Panel - Live Signals & Analysis */}
+              <div className="col-span-12 lg:col-span-3 flex flex-col space-y-4">
+                <LiveSignals />
+                <ActivePositions/>
+                <TechnicalAnalysisCard 
+                  analysis={analysis}
+                  onRunAnalysis={handleAnalysis}
+                  disabled={!selectedPair || !selectedTimeframe || !selectedStrategy}
+                />
+              </div>
             </div>
           </TabsContent>
 
@@ -118,6 +287,67 @@ export function LiveTrading() {
                       <p className="text-xs text-muted-foreground mt-1">PNG, JPG, WebP up to 10MB</p>
                     </div>
                   </div>
+                  {/* Technical Analysis */}
+                  <div className="mb-6">
+                    <h4 className="text-sm font-medium text-foreground mb-3">Technical Analysis</h4>
+                    {analysis.loading ? (
+                      <div className="flex items-center justify-center p-4">
+                        <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                        <span>Analyzing market data...</span>
+                      </div>
+                    ) : analysis.error ? (
+                      <div className="flex items-center gap-2 text-destructive p-3 rounded-md bg-destructive/10 text-sm">
+                        <AlertCircle className="h-4 w-4" />
+                        {analysis.error}
+                      </div>
+                    ) : !analysis.hasRun ? (
+                      <div className="text-sm text-muted-foreground p-3 text-center">
+                        <p>Click "Run AI Analysis" to analyze the market</p>
+                        <Button 
+                          onClick={handleAnalysis}
+                          className="mt-2 bg-gradient-primary hover:bg-primary-hover"
+                          disabled={!selectedPair || !selectedTimeframe || !selectedStrategy}
+                        >
+                          <Zap className="h-4 w-4 mr-2" />
+                          Run AI Analysis
+                        </Button>
+                      </div>
+                    ) : analysis.data?.analysis?.technical_analysis ? (
+                      <div className="space-y-3 text-sm">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="p-2 bg-muted/20 rounded">
+                            <p className="text-muted-foreground text-xs">Support</p>
+                            <p className="font-medium">{analysis.data.analysis.technical_analysis.Support_Level?.toFixed(5) || 'N/A'}</p>
+                          </div>
+                          <div className="p-2 bg-muted/20 rounded">
+                            <p className="text-muted-foreground text-xs">Resistance</p>
+                            <p className="font-medium">{analysis.data.analysis.technical_analysis.Resistance_Level?.toFixed(5) || 'N/A'}</p>
+                          </div>
+                        </div>
+                        <div className="p-2 bg-muted/10 rounded">
+                          <p className="text-muted-foreground text-xs">Volume Confirmation</p>
+                          <p className="font-medium">{analysis.data.analysis.technical_analysis.Volume_Confirmation || 'N/A'}</p>
+                        </div>
+                        <div className="p-2 bg-muted/10 rounded">
+                          <p className="text-muted-foreground text-xs">Breakout Direction</p>
+                          <p className="font-medium">{analysis.data.analysis.technical_analysis.Breakout_Direction || 'N/A'}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground p-3 text-center">
+                        <p>No analysis data available. Try running the analysis again.</p>
+                        <Button 
+                          onClick={handleAnalysis}
+                          className="mt-2 bg-gradient-primary hover:bg-primary-hover"
+                          disabled={!selectedPair || !selectedTimeframe || !selectedStrategy}
+                        >
+                          <Zap className="h-4 w-4 mr-2" />
+                          Retry Analysis
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  
                   {/* Text Analysis */}
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
@@ -293,8 +523,6 @@ export function LiveTrading() {
         </Tabs>
 
         {/* Execution Results Component */}
-        
-        <TradeExecution />
       </div>
     </TradingLayout>
   );

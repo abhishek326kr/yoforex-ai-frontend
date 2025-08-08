@@ -5,9 +5,10 @@ import { Loader2 } from "lucide-react";
 
 interface PublicRouteProps {
   children: ReactNode;
+  redirectTo?: string;
 }
 
-export function PublicRoute({ children }: PublicRouteProps) {
+export function PublicRoute({ children, redirectTo = '/' }: PublicRouteProps) {
   const { isAuthenticated, loading } = useAuth();
   const [, setLocation] = useLocation();
 
@@ -23,10 +24,10 @@ export function PublicRoute({ children }: PublicRouteProps) {
   }
 
   if (isAuthenticated) {
-    // Redirect to dashboard if already authenticated
-    setLocation("/");
+    // Redirect to specified route if already authenticated
+    setLocation(redirectTo);
     return null;
   }
 
   return <>{children}</>;
-} 
+}
