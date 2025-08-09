@@ -1,13 +1,14 @@
-// List of major forex pairs and commodities
+// List of major forex pairs (OANDA codes) and commodities
 const MAJOR_FOREX_PAIRS = [
-  'EUR/USD', 'USD/JPY', 'GBP/USD', 'AUD/USD', 'USD/CAD', 
+  'EUR/USD', 'USD/JPY', 'GBP/USD', 'AUD/USD', 'USD/CAD',
   'USD/CHF', 'NZD/USD', 'EUR/GBP', 'EUR/JPY', 'GBP/JPY',
-  // Major commodity pairs
-  'XAU/USD', 'XAG/USD', 'XPT/USD', 'XPD/USD', 'OIL/USD',
-  'NATURALGAS/USD', 'COPPER/USD', 'PLATINUM/USD', 'PALLADIUM/USD'
+  // Major commodity forex-style pairs
+  'XAU/USD', 'XAG/USD', 'XPT/USD', 'XPD/USD', 'WTICO/USD', // WTI Crude
+  'BCO/USD', // Brent Crude
+  'NATGAS/USD', 'COPPER/USD', 'PLATINUM/USD', 'PALLADIUM/USD'
 ];
 
-// List of crypto pairs with their TradingView symbols
+// Crypto pairs with their TradingView symbols
 const CRYPTO_PAIRS: Record<string, string> = {
   'BTC/USD': 'BINANCE:BTCUSDT',
   'ETH/USD': 'BINANCE:ETHUSDT',
@@ -26,68 +27,86 @@ const CRYPTO_PAIRS: Record<string, string> = {
   'LTC/USD': 'BINANCE:LTCUSDT'
 };
 
-// List of stock indices
+// Stock indices list
 const STOCK_INDICES = [
-  // Global Indices
   'S&P 500', 'DOW', 'NASDAQ', 'FTSE 100', 'DAX',
-  'NIKKEI 225', 'HANG SENG', 'ASX 200', 'CAC 40'
+  'NIKKEI 225', 'HANG SENG', 'ASX 200', 'CAC 40',
+  // Indian Indices
+  'SENSEX', 'NIFTY 50', 'NIFTY BANK', 'NIFTY NEXT 50',
+  'NIFTY IT', 'NIFTY AUTO', 'NIFTY PHARMA', 'NIFTY FIN SERVICE',
+  'NIFTY FMCG', 'NIFTY METAL', 'NIFTY REALTY', 'NIFTY PSU BANK',
+  'NIFTY MEDIA', 'NIFTY PVT BANK', 'NIFTY CONSUMER DURABLES'
 ];
 
-// Popular Indian Stocks (NIFTY 50 constituents and other large caps)
+// Indian stocks list
+const INDIAN_STOCKS: Record<string, string> = {
+  'RELIANCE': 'NSE:RELIANCE',
+  'TCS': 'NSE:TCS',
+  'HDFC BANK': 'NSE:HDFCBANK',
+  'ICICI BANK': 'NSE:ICICIBANK',
+  'HUL': 'NSE:HINDUNILVR',
+  'INFOSYS': 'NSE:INFY',
+  'ITC': 'NSE:ITC',
+  'BHARTI AIRTEL': 'NSE:BHARTIARTL',
+  'SBI': 'NSE:SBIN',
+  'LT': 'NSE:LT',
+  'HCL TECH': 'NSE:HCLTECH',
+  'BAJAJ FINANCE': 'NSE:BAJFINANCE',
+  'ASIAN PAINTS': 'NSE:ASIANPAINT',
+  'HDFC LIFE': 'NSE:HDFCLIFE',
+  'KOTAK MAHINDRA': 'NSE:KOTAKBANK',
+  'TATA MOTORS': 'NSE:TATAMOTORS',
+  'TATA STEEL': 'NSE:TATASTEEL',
+  'WIPRO': 'NSE:WIPRO',
+  'ADANI PORTS': 'NSE:ADANIPORTS',
+  'NTPC': 'NSE:NTPC',
+  'POWERGRID': 'NSE:POWERGRID',
+  'ULTRATECH CEMENT': 'NSE:ULTRACEMCO',
+  'TITAN': 'NSE:TITAN',
+  'SUN PHARMA': 'NSE:SUNPHARMA',
+  'NESTLE': 'NSE:NESTLEIND'
+};
 
-
-// Commodities with their specific TradingView symbols
+// Commodity TradingView symbols (fixed for OANDA compatibility)
 const COMMODITY_SYMBOLS: Record<string, string> = {
   'XAU/USD': 'TVC:GOLD',
   'XAG/USD': 'TVC:SILVER',
-  'OIL/USD': 'TVC:USOIL',
-  'NATURALGAS/USD': 'NATGASUSD',
-  'COPPER/USD': 'XCUUSD',
+  'WTICO/USD': 'TVC:USOIL',   
+  'BCO/USD': 'TVC:UKOIL',     
+  'NATGAS/USD': 'NATGASUSD', 
+  'COPPER/USD': 'XCUUSD',   
   'PLATINUM/USD': 'TVC:PLATINUM',
   'PALLADIUM/USD': 'TVC:PALLADIUM',
   'XPT/USD': 'TVC:PLATINUM',
   'XPD/USD': 'TVC:PALLADIUM'
 };
 
-/**
- * Formats a trading pair for use with TradingView
- * @param pair - The trading pair (e.g., "EUR/USD", "BTC/USD", "S&P 500")
- * @returns An object containing the formatted symbol and whether it has limited timeframes
- */
 interface FormattedSymbol {
   symbol: string;
   limitedTimeframes: boolean;
 }
 
 export const formatTradingViewSymbol = (pair: string): FormattedSymbol => {
-  // Remove any spaces and convert to uppercase
   const cleanPair = pair.replace(/\s+/g, '').toUpperCase();
-  
-  // If the pair already has a colon (e.g., "FX:EURUSD"), return as is
+
   if (cleanPair.includes(':')) {
     return { symbol: cleanPair, limitedTimeframes: false };
   }
-  
-  // Check if it's a crypto pair
+
   if (CRYPTO_PAIRS[pair]) {
     return { symbol: CRYPTO_PAIRS[pair], limitedTimeframes: false };
   }
-  
-  // Check if it's a commodity
+
   if (COMMODITY_SYMBOLS[pair]) {
     return { symbol: COMMODITY_SYMBOLS[pair], limitedTimeframes: false };
   }
-  
-  // Handle forex pairs
+
   if (MAJOR_FOREX_PAIRS.includes(pair)) {
-    // For commodity forex pairs like XAU/USD, we've already handled them above
     if (!pair.startsWith('X') || !pair.includes('/USD')) {
       return { symbol: `FX:${cleanPair.replace('/', '')}`, limitedTimeframes: false };
     }
   }
-  
-  // Handle stock indices
-  
+
   switch (pair) {
     case 'S&P 500': return { symbol: 'SPX', limitedTimeframes: false };
     case 'DOW': return { symbol: 'DOW', limitedTimeframes: false };
@@ -103,26 +122,75 @@ export const formatTradingViewSymbol = (pair: string): FormattedSymbol => {
     case 'NIFTY BANK': return { symbol: 'NSE:BANKNIFTY', limitedTimeframes: false };
     case 'NIFTY NEXT 50': return { symbol: 'NSE:JUNIORBEES', limitedTimeframes: false };
   }
-  
-  // Check if it's an Indian stock
- 
-  
-  // Default: assume it's a forex pair and format accordingly
+
+  if (INDIAN_STOCKS[pair]) {
+    return { symbol: INDIAN_STOCKS[pair], limitedTimeframes: false };
+  }
+
   if (cleanPair.includes('/')) {
     return { symbol: `FX:${cleanPair.replace('/', '')}`, limitedTimeframes: false };
   }
-  
-  // If no formatting needed, return as is
+
   return { symbol: cleanPair, limitedTimeframes: false };
 };
 
-/**
- * Gets all available trading pairs grouped by category
- */
 export const getTradingPairs = () => ({
   forex: MAJOR_FOREX_PAIRS.filter(pair => !pair.startsWith('X') || !pair.endsWith('/USD')),
   crypto: Object.keys(CRYPTO_PAIRS),
   indices: STOCK_INDICES,
-  
+  indianStocks: Object.keys(INDIAN_STOCKS).sort(),
   commodities: Object.keys(COMMODITY_SYMBOLS)
 });
+
+// OANDA mapping function
+export const mapToOandaInstrument = (pair: string): string | undefined => {
+  const cleanPair = pair.trim().toUpperCase();
+
+  // Special case for COPPER/USD - return XCU_USD for OANDA
+  if (pair === 'COPPER/USD') {
+    return 'XCU_USD';
+  }
+
+  // Forex Pairs (OANDA format: EUR_USD, USD_JPY etc.)
+  if (MAJOR_FOREX_PAIRS.includes(pair)) {
+    return cleanPair.replace('/', '_');
+  }
+
+  // Commodities in OANDA format (same as forex style but with underscore)
+  if (COMMODITY_SYMBOLS[pair]) {
+    return COMMODITY_SYMBOLS[pair];
+  }
+
+  // Crypto — OANDA doesn’t list BINANCE symbols, map only if they exist there
+  if (CRYPTO_PAIRS[pair]) {
+    // Example mapping, adjust if you have exact OANDA instrument names
+    return cleanPair.replace('/', '_');
+  }
+
+  // Stock Indices mapping (common OANDA names)
+  const indexMap: Record<string, string> = {
+    'S&P 500': 'SPX500_USD',
+    'DOW': 'US30_USD',
+    'NASDAQ': 'NAS100_USD',
+    'FTSE 100': 'UK100_GBP',
+    'DAX': 'DE30_EUR',
+    'NIKKEI 225': 'JP225_USD',
+    'HANG SENG': 'HK33_HKD',
+    'ASX 200': 'AU200_AUD',
+    'CAC 40': 'FR40_EUR'
+  };
+  if (indexMap[cleanPair]) return indexMap[cleanPair];
+
+  // Indian stocks — OANDA generally doesn’t have these, keep original
+  if (INDIAN_STOCKS[pair]) {
+    return INDIAN_STOCKS[pair]; // or some custom mapping if needed
+  }
+
+  // Default — just replace / with _
+  else if (cleanPair.includes('/')) {
+    return cleanPair.replace('/', '_');
+  }
+
+  return;
+};
+

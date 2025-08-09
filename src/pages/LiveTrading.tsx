@@ -177,10 +177,10 @@ export function LiveTrading() {
     <TradingLayout>
       <div className="flex flex-col min-h-[calc(100vh-4rem)] overflow-y-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 flex-shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between my-4 flex-shrink-0">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Live Trading</h1>
-            <p className="text-muted-foreground mt-1">AI-powered forex analysis and automated trading</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Live Trading</h1>
+            <p className="text-muted-foreground">AI-powered forex analysis and automated trading</p>
           </div>
           <div className="flex items-center space-x-3 mt-2 sm:mt-0">
             <Badge variant="secondary" className="bg-gradient-profit text-white">

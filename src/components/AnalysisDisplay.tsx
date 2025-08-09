@@ -1,145 +1,201 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, AlertTriangle, Info, ArrowUp, ArrowDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Info, TrendingUp, TrendingDown, Target, Shield, BarChart3, RefreshCw } from 'lucide-react';
 
 interface AnalysisDisplayProps {
   analysis: {
+    signal: 'BUY' | 'SELL' | 'HOLD';
     confidence: number;
     entry: number;
-    recommendation: string;
-    risk_reward_ratio: number;
-    signal: string;
     stop_loss: number;
     take_profit: number;
+    risk_reward_ratio: string;
+    timeframe: string;
     technical_analysis: {
-      Breakout_Direction: string;
-      Resistance_Level: number;
-      Support_Level: number;
-      Volume_Confirmation: string;
+      [key: string]: any; // Make it flexible to handle varying parameter names
     };
+    recommendation: string;
   };
+  onRefresh?: () => void; // Optional callback for refreshing the analysis
 }
 
-export function AnalysisDisplay({ analysis }: AnalysisDisplayProps) {
-  const isBullish = analysis.signal === 'BUY';
-  const confidencePercentage = Math.round(analysis.confidence * 100);
+export function AnalysisDisplay({ analysis, onRefresh }: AnalysisDisplayProps) {
+  const confidencePercentage = analysis.confidence;
   
   const getSignalVariant = () => {
-    if (analysis.signal === 'BUY') return 'bg-green-500/10 text-green-500';
-    if (analysis.signal === 'SELL') return 'bg-red-500/10 text-red-500';
-    return 'bg-yellow-500/10 text-yellow-500';
+    if (analysis.signal === 'BUY') return 'bg-emerald-500/10 text-emerald-600 border-emerald-200/20';
+    if (analysis.signal === 'SELL') return 'bg-red-500/10 text-red-600 border-red-200/20';
+    return 'bg-amber-500/10 text-amber-600 border-amber-200/20';
   };
 
-  const getRecommendationVariant = () => {
-    if (analysis.recommendation === 'STRONG_BUY' || analysis.recommendation === 'STRONG_SELL') {
-      return 'bg-amber-500/10 text-amber-500';
+  const getSignalIcon = () => {
+    if (analysis.signal === 'BUY') return <TrendingUp className="h-4 w-4" />;
+    if (analysis.signal === 'SELL') return <TrendingDown className="h-4 w-4" />;
+    return <BarChart3 className="h-4 w-4" />;
+  };
+
+  const getConfidenceColor = () => {
+    if (confidencePercentage >= 80) return 'text-emerald-600';
+    if (confidencePercentage >= 60) return 'text-amber-600';
+    return 'text-red-600';
+  };
+
+  const formatPrice = (price: number | undefined) => {
+    if (price === undefined || price === null || isNaN(price)) {
+      return 'N/A';
     }
-    return 'bg-blue-500/10 text-blue-500';
+    return price.toFixed(5);
   };
 
   return (
-    <div className="space-y-4">
-      {/* Signal and Confidence */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20">
-          <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Main Signal Card */}
+      <Card className="p-6 bg-gradient-to-br from-background/80 to-background/40 backdrop-blur-sm border-border/20 shadow-lg">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className={`p-3 rounded-full ${getSignalVariant()}`}>
+              {getSignalIcon()}
+            </div>
             <div>
-              <p className="text-sm text-muted-foreground">Signal</p>
-              <div className="flex items-center mt-1">
-                <Badge 
-                  className={`${getSignalVariant()} text-sm font-medium px-3 py-1`}
-                >
-                  {isBullish ? (
-                    <ArrowUp className="h-4 w-4 mr-1" />
-                  ) : (
-                    <ArrowDown className="h-4 w-4 mr-1" />
-                  )}
+              <div className="flex items-center gap-2 mb-1">
+                <Badge className={`${getSignalVariant()} text-sm font-semibold px-3 py-1`}>
                   {analysis.signal}
                 </Badge>
+                <span className="text-xs text-muted-foreground">{analysis.timeframe}</span>
               </div>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Confidence</p>
-              <p className="text-2xl font-bold">{confidencePercentage}%</p>
+              <p className="text-sm text-muted-foreground">Trading Signal</p>
             </div>
           </div>
-        </Card>
+          
+          <div className="flex items-center gap-6">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-1">Confidence</p>
+              <p className={`text-2xl font-bold ${getConfidenceColor()}`}>{confidencePercentage}%</p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-1">Risk/Reward</p>
+              <p className="text-2xl font-bold text-foreground">{analysis.risk_reward_ratio}</p>
+            </div>
+            {onRefresh && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onRefresh}
+                className="flex items-center gap-2 hover:bg-primary/10 border-primary/20"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Refresh Analysis
+              </Button>
+            )}
+          </div>
+        </div>
+      </Card>
 
-        <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Recommendation</p>
-              <Badge className={`${getRecommendationVariant()} mt-1 text-sm font-medium px-3 py-1`}>
-                {analysis.recommendation.replace('_', ' ')}
-              </Badge>
+      {/* Trading Levels */}
+      <Card className="p-6 bg-gradient-to-br from-background/80 to-background/40 backdrop-blur-sm border-border/20 shadow-lg">
+        <div className="flex items-center gap-2 mb-4">
+          <Target className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-semibold text-foreground">Trading Levels</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="text-center p-4 rounded-xl bg-blue-500/5 border border-blue-200/20 hover:bg-blue-500/10 transition-colors">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+              <p className="text-sm font-medium text-muted-foreground">Entry Price</p>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Risk/Reward</p>
-              <p className="text-2xl font-bold">{analysis.risk_reward_ratio.toFixed(2)}</p>
+            <p className="text-xl font-bold text-blue-600">{formatPrice(analysis.entry)}</p>
+          </div>
+          <div className="text-center p-4 rounded-xl bg-red-500/5 border border-red-200/20 hover:bg-red-500/10 transition-colors">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Shield className="w-3 h-3 text-red-500" />
+              <p className="text-sm font-medium text-muted-foreground">Stop Loss</p>
             </div>
+            <p className="text-xl font-bold text-red-600">{formatPrice(analysis.stop_loss)}</p>
           </div>
-        </Card>
-      </div>
-
-      {/* Entry, SL, TP */}
-      <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20">
-        <h3 className="text-md font-medium mb-3">Trade Levels</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-muted/10 p-3 rounded-lg">
-            <p className="text-xs text-muted-foreground">Entry</p>
-            <p className="text-lg font-semibold">{analysis.entry.toFixed(5)}</p>
-          </div>
-          <div className="bg-red-500/10 p-3 rounded-lg">
-            <p className="text-xs text-muted-foreground">Stop Loss</p>
-            <p className="text-lg font-semibold text-red-500">{analysis.stop_loss.toFixed(5)}</p>
-          </div>
-          <div className="bg-green-500/10 p-3 rounded-lg">
-            <p className="text-xs text-muted-foreground">Take Profit</p>
-            <p className="text-lg font-semibold text-green-500">{analysis.take_profit.toFixed(5)}</p>
+          <div className="text-center p-4 rounded-xl bg-emerald-500/5 border border-emerald-200/20 hover:bg-emerald-500/10 transition-colors">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Target className="w-3 h-3 text-emerald-500" />
+              <p className="text-sm font-medium text-muted-foreground">Take Profit</p>
+            </div>
+            <p className="text-xl font-bold text-emerald-600">{formatPrice(analysis.take_profit)}</p>
           </div>
         </div>
       </Card>
 
       {/* Technical Analysis */}
-      <Card className="p-4 bg-gradient-glass backdrop-blur-sm border-border/20">
-        <h3 className="text-md font-medium mb-3">Technical Analysis</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <div className="bg-muted/10 p-3 rounded-lg">
-              <p className="text-xs text-muted-foreground">Support Level</p>
-              <p className="font-medium">{analysis.technical_analysis.Support_Level?.toFixed(5) || 'N/A'}</p>
-            </div>
-            <div className="bg-muted/10 p-3 rounded-lg">
-              <p className="text-xs text-muted-foreground">Resistance Level</p>
-              <p className="font-medium">{analysis.technical_analysis.Resistance_Level?.toFixed(5) || 'N/A'}</p>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div className="bg-muted/10 p-3 rounded-lg">
-              <p className="text-xs text-muted-foreground">Breakout Direction</p>
-              <div className="flex items-center">
-                {analysis.technical_analysis.Breakout_Direction === 'UP' ? (
-                  <ArrowUp className="h-4 w-4 text-green-500 mr-1" />
-                ) : analysis.technical_analysis.Breakout_Direction === 'DOWN' ? (
-                  <ArrowDown className="h-4 w-4 text-red-500 mr-1" />
-                ) : (
-                  <Info className="h-4 w-4 text-blue-500 mr-1" />
-                )}
-                <p className="font-medium">{analysis.technical_analysis.Breakout_Direction || 'N/A'}</p>
+      <Card className="p-6 bg-gradient-to-br from-background/80 to-background/40 backdrop-blur-sm border-border/20 shadow-lg">
+        <div className="flex items-center gap-2 mb-4">
+          <BarChart3 className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-semibold text-foreground">Technical Analysis</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {Object.entries(analysis.technical_analysis).map(([key, value]) => {
+            // Helper function to format parameter names for display
+            const formatParameterName = (paramName: string) => {
+              return paramName
+                .replace(/_/g, ' ')
+                .replace(/([A-Z])/g, ' $1')
+                .trim()
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+            };
+
+            // Generic styling for all parameters
+            const getParameterStyling = () => {
+              return {
+                bgColor: 'bg-muted/20 border-muted/40 hover:bg-muted/30',
+                textColor: 'text-foreground',
+                dotColor: 'bg-primary',
+                icon: null
+              };
+            };
+
+            const styling = getParameterStyling();
+            const displayName = formatParameterName(key);
+            
+            return (
+              <div 
+                key={key} 
+                className={`p-4 rounded-xl border transition-colors ${styling.bgColor}`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {styling.icon || <div className={`w-3 h-3 rounded-full ${styling.dotColor}`}></div>}
+                    <span className="text-sm font-medium text-muted-foreground">{displayName}</span>
+                  </div>
+                  <div className="text-right">
+                    {typeof value === 'number' ? (
+                      <span className={`text-lg font-bold ${styling.textColor}`}>
+                        {formatPrice(value)}
+                      </span>
+                    ) : (
+                      <Badge 
+                        variant="secondary"
+                        className="font-medium"
+                      >
+                        {String(value)}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="bg-muted/10 p-3 rounded-lg">
-              <p className="text-xs text-muted-foreground">Volume Confirmation</p>
-              <div className="flex items-center">
-                {analysis.technical_analysis.Volume_Confirmation === 'High' ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500 mr-1" />
-                ) : (
-                  <AlertTriangle className="h-4 w-4 text-yellow-500 mr-1" />
-                )}
-                <p className="font-medium">{analysis.technical_analysis.Volume_Confirmation || 'N/A'}</p>
-              </div>
-            </div>
-          </div>
+            );
+          })}
+        </div>
+      </Card>
+
+      {/* AI Recommendation */}
+      <Card className="p-6 bg-gradient-to-br from-background/80 to-background/40 backdrop-blur-sm border-border/20 shadow-lg">
+        <div className="flex items-center gap-2 mb-4">
+          <Info className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-semibold text-foreground">AI Analysis & Recommendation</h3>
+        </div>
+        <div className="prose prose-sm max-w-none">
+          <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap break-words">
+            {analysis.recommendation}
+          </p>
         </div>
       </Card>
     </div>
