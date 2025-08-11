@@ -95,9 +95,9 @@ const TechnicalAnalysisCard = ({ analysis, onRunAnalysis, disabled = false }: Te
 import { fetchTradingAnalysis, type Timeframe, type TradingStrategy } from '@/lib/api/analysis';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import TradingTips from '@/components/TradingTips';
 import {
   Accordion,
   AccordionContent,
@@ -116,8 +116,6 @@ import TimeframeSelection from '@/components/TimeframeSelection';
 import { TradingChart } from '@/components/TradingChart';
 import StrategySelection from '@/components/StrategySelection';
 import ActivePositions from '@/components/ActivePositions';
-import TradingTips from '@/components/TradingTips';
-
 
 export function LiveTrading() {
   const [selectedPair, setSelectedPair] = useState("EUR/USD");
@@ -228,17 +226,7 @@ export function LiveTrading() {
                   onTimeframeSelect={setSelectedTimeframe}
                 />
 
-                {/* AI Models Accordion */}
-                {/* <Accordion type="single" collapsible className="border rounded-lg overflow-hidden">
-                  <AccordionItem value="ai-models" className="border-b">
-                    <AccordionTrigger className="px-4 py-3 text-left font-medium flex justify-between items-center w-full hover:bg-secondary/30 transition-colors">
-                      <span>AI Models</span>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4">
-                      <AiModelsSelection />
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion> */}
+                
 
                 {/* Strategy Selection Accordion */}
                 <Accordion type="single" collapsible className="border rounded-lg overflow-hidden">
@@ -448,8 +436,17 @@ export function LiveTrading() {
                 </Card>
               </div>
 
-              {/* Right Panel - AI Analysis Results */}
+              {/* Right Panel - AI Analysis Results and News */}
               <div className="col-span-12 lg:col-span-3 space-y-6">
+                {/* Market News */}
+                <Card className="bg-gradient-glass backdrop-blur-sm border-border/20 overflow-hidden">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Market News</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <TradingTips horizontalLayout={false} showPagination={true} />
+                  </CardContent>
+                </Card>
                 <Card className="overflow-hidden bg-gradient-glass backdrop-blur-sm border-border/20">
                   <Accordion type="single" collapsible defaultValue="ai-analysis" className="w-full">
                     <AccordionItem value="ai-analysis" className="border-0">
