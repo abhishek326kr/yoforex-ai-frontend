@@ -44,16 +44,8 @@ export function TradingSidebar() {
 
     <div className="flex h-full flex-col bg-sidebar border-r border-sidebar-border ">
       {/* Logo Section */}
-      <div className="flex h-16 items-center px-6 border-b border-sidebar-border py-2">
-        <div className="flex items-center space-x-3">
-          <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-            <BarChart3 className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-sidebar-foreground">YoForex</h1>
-            <p className="text-xs text-sidebar-foreground/60">AI Trading</p>
-          </div>
-        </div>
+      <div className="flex h-16 justify-start items-center border-b border-sidebar-border py-2">
+        <img src="/logo.png" alt="Yoforex AI logo" className="ml-[0px]"/>
       </div>
 
       {/* Navigation */}

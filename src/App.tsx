@@ -15,6 +15,8 @@ import { Auth } from "@/pages/Auth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AuthProvider } from "@/hooks/useAuth";
 import NotFound from "@/pages/NotFound";
+import HelpSupport from "./components/HelpSupport";
+import { Journal } from "./components/Journal";
 
 const queryClient = new QueryClient();
 
@@ -32,22 +34,14 @@ const App = () => (
             {/* Protected routes */}
             <Route path="/dashboard" component={Dashboard} />
             <Route path="/trading" component={LiveTrading} />
-
             <Route path="/history" component={History} />
-
-            <Route path="/active"   component={ActiveTrades} />
-
+            <Route path="/active" component={ActiveTrades} />
             <Route path="/settings" component={Settings} />
-
             <Route path="/pricing" component={Pricing} />
             <Route path="/billing" component={Billing} />
+            <Route path="/help" component={HelpSupport} />
+            <Route path="/journal" component={Journal}/>
             
-
-            <Route path="/pricing" component={Pricing} />
-             
-
-            <Route path="/billing" component={Billing} />
-
             {/* Catch-all route - redirects based on auth status */}
             <Route path="/">
               <ProtectedRoute>

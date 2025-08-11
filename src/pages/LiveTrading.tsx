@@ -33,21 +33,6 @@ const TechnicalAnalysisCard = ({ analysis, onRunAnalysis, disabled = false }: Te
         <Loader2 className="h-8 w-8 animate-spin mr-3 text-primary" />
         <span className="text-lg">Analyzing market data...</span>
       </div>
-    ) : analysis.error ? (
-      <div className="flex flex-col items-center p-6 text-center">
-        <div className="flex items-center gap-2 text-destructive p-3 rounded-md bg-destructive/10 text-sm mb-4">
-          <AlertCircle className="h-5 w-5" />
-          <span>{analysis.error}</span>
-        </div>
-        <Button 
-          onClick={onRunAnalysis}
-          className="mt-2 bg-gradient-primary hover:bg-primary-hover"
-          disabled={disabled}
-        >
-          <Zap className="h-4 w-4 mr-2" />
-          Try Again
-        </Button>
-      </div>
     ) : !analysis.hasRun ? (
       <div className="flex flex-col items-center p-6 text-center">
         <div className="bg-muted/20 p-4 rounded-full mb-4">
@@ -66,8 +51,26 @@ const TechnicalAnalysisCard = ({ analysis, onRunAnalysis, disabled = false }: Te
           Run AI Analysis
         </Button>
       </div>
+    ) : analysis.error ? (
+      <div className="flex flex-col items-center p-6 text-center">
+        <div className="bg-muted/20 p-4 rounded-full mb-4">
+          <AlertCircle className="h-8 w-8 text-yellow-500" />
+        </div>
+        <h4 className="text-lg font-medium mb-2">Analysis Failed</h4>
+        <p className="text-muted-foreground text-sm mb-6">
+          {analysis.error || 'We couldn\'t retrieve the analysis data. Please try running the analysis again.'}
+        </p>
+        <Button 
+          onClick={onRunAnalysis}
+          className="mt-2 bg-gradient-primary hover:bg-primary-hover"
+          disabled={disabled}
+        >
+          <Zap className="h-4 w-4 mr-2" />
+          Retry Analysis
+        </Button>
+      </div>
     ) : analysis.data?.analysis ? (
-      <AnalysisDisplay analysis={analysis.data.analysis} />
+      <AnalysisDisplay analysis={analysis.data.analysis} onRefresh={onRunAnalysis} />
     ) : (
       <div className="flex flex-col items-center p-6 text-center">
         <div className="bg-muted/20 p-4 rounded-full mb-4">
@@ -113,6 +116,7 @@ import TimeframeSelection from '@/components/TimeframeSelection';
 import { TradingChart } from '@/components/TradingChart';
 import StrategySelection from '@/components/StrategySelection';
 import ActivePositions from '@/components/ActivePositions';
+import TradingTips from '@/components/TradingTips';
 
 
 export function LiveTrading() {
@@ -179,7 +183,13 @@ export function LiveTrading() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between my-4 flex-shrink-0">
           <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Live Trading</h1>
+            <div className="flex items-baseline mb-2">
+              <h1 className="text-4xl font-bold text-foreground mr-3">Live Trading</h1>
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <span className="text-sm opacity-75">powered by</span>
+                <img src="/yoforexai.png" alt="YoforexAI.com" className='h-7 w-auto'/>
+              </div>
+            </div>
             <p className="text-muted-foreground">AI-powered forex analysis and automated trading</p>
           </div>
           <div className="flex items-center space-x-3 mt-2 sm:mt-0">
@@ -246,27 +256,31 @@ export function LiveTrading() {
                 </Accordion>
               </div>
 
-              {/* Center Panel - Trading Chart */}
-              <div className="col-span-12 lg:col-span-6">
-                <TradingChart 
-                  selectedPair={selectedPair}
-                  selectedTimeframe={selectedTimeframe}
-                  onCandleDataUpdate={handleCandleDataUpdate}
-                />
+              {/* Center Panel - Trading Chart and Analysis */}
+              <div className="col-span-12 lg:col-span-6 flex flex-col space-y-4">
+                <div className="h-[600px]">
+                  <TradingChart 
+                    selectedPair={selectedPair}
+                    selectedTimeframe={selectedTimeframe}
+                    onCandleDataUpdate={handleCandleDataUpdate}
+                  />
+                </div>
                 
-                {/* Trade Execution Card - Spanning full width under chart */}
-                
+                {/* Market Analysis Card - Expanded to fill space */}
+                <div className="flex-1 min-h-[400px]">
+                  <TechnicalAnalysisCard 
+                    analysis={analysis}
+                    onRunAnalysis={handleAnalysis}
+                    disabled={!selectedPair || !selectedTimeframe || !selectedStrategy}
+                  />
+                </div>
               </div>
 
-              {/* Right Panel - Live Signals & Analysis */}
+              {/* Right Panel - Live Signals & Positions */}
               <div className="col-span-12 lg:col-span-3 flex flex-col space-y-4">
                 <LiveSignals />
                 <ActivePositions/>
-                <TechnicalAnalysisCard 
-                  analysis={analysis}
-                  onRunAnalysis={handleAnalysis}
-                  disabled={!selectedPair || !selectedTimeframe || !selectedStrategy}
-                />
+                <TradingTips/>
               </div>
             </div>
           </TabsContent>

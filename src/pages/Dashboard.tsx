@@ -1,18 +1,9 @@
 import { TradingLayout } from "@/components/layout/TradingLayout";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Brain, Zap, ArrowUpRight, ChevronDown, TrendingUp, TrendingDown, Clock, AlertCircle, DollarSign, Target, Activity, BarChart3, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  TrendingUp,
-  TrendingDown,
-  DollarSign,
-  Target,
-  Activity,
-  BarChart3,
-  Zap,
-  Brain,
-  ArrowRight
-} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import TradingTips from "@/components/TradingTips";
 
 const portfolioStats = [
   {
@@ -93,9 +84,9 @@ export function Dashboard() {
         {/* Welcome Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Trading Dashboard</h1>
+            <h1 className="text-3xl font-bold text-foreground">Welcome back, John.</h1>
             <p className="text-muted-foreground mt-1">
-              Welcome back, John. Here's your AI-powered trading overview.
+              Here's your AI-powered trading overview.
             </p>
           </div>
           <div className="flex items-center space-x-3 mt-4 sm:mt-0">
@@ -239,7 +230,7 @@ export function Dashboard() {
         </div>
 
         {/* Market Overview */}
-        <Card className="p-6 bg-gradient-glass backdrop-blur-sm border-border/20">
+        <Card className="p-6 bg-gradient-glass backdrop-blur-sm border-border/20 ">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-lg font-semibold text-foreground">Market Overview</h3>
@@ -273,6 +264,18 @@ export function Dashboard() {
                 </p>
               </div>
             ))}
+          </div>
+        </Card>
+
+        <Card className="p-6 bg-gradient-glass backdrop-blur-sm border-border/20">
+          <CardHeader className="p-0 mb-6">
+            <CardTitle className="text-lg font-semibold">Market News & Insights</CardTitle>
+          </CardHeader>
+          <div className="relative">
+            <div className="overflow-x-auto pb-4 -mx-2">
+              <TradingTips horizontalLayout={true} />
+            </div>
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
           </div>
         </Card>
       </div>
